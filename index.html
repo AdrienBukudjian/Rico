@@ -743,6 +743,8 @@ function App() {
   // instead, which update immediately.
   const generalBoostRoundRef = useRef(false);
   const sadomazoGeneralRoundRef = useRef(false);
+  const lastDecidedRoundRef = useRef(-1);
+  const lastDecidedTurnRef = useRef(-1);
 
   function setGeneralBoostRoundSync(v) {
     generalBoostRoundRef.current = v;
@@ -1058,8 +1060,8 @@ function App() {
 
   const currentRoundIndex = n > 0 ? Math.floor(turnCount / n) : 0;
 
-  const ROUND_EVENT_CHANCE = 0.15;
-  const TURN_EVENT_CHANCE = 0.13;
+  const ROUND_EVENT_CHANCE = Math.min(0.30, 0.15 + Math.max(0, n - 2) * 0.015);
+  const TURN_EVENT_CHANCE = Math.min(0.25, 0.13 + Math.max(0, n - 2) * 0.012);
 
   function resolveGangbangRound(targetRoundNumber) {
     const entries = history.filter((h) => h.round === targetRoundNumber && !h.special);
@@ -1136,12 +1138,16 @@ function App() {
   // many are enabled — enabling more options splits the same pie, it doesn't
   // add up on top of it.
   useEffect(() => {
-    if (phase !== "playing" || isTiebreak) {
+    if (isTiebreak) {
       setGeneralBoostRoundSync(false);
       setSadomazoGeneralRoundSync(false);
-      if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
+      if (gangbangRoundIndex !== null) setGangbangRoundIndex(null);
       return;
     }
+    if (phase !== "playing" && phase !== "duel") return;
+    if (lastDecidedRoundRef.current === currentRoundIndex) return;
+    lastDecidedRoundRef.current = currentRoundIndex;
+
     const pool = [];
     if (partoozeGeneral) pool.push("general");
     if (sadomazoGeneral) pool.push("sadomazoGeneral");
@@ -1192,7 +1198,16 @@ function App() {
   // Turn-level pool: same idea — at most one of these three per turn, overall
   // chance stays fixed, enabling more options only splits who gets picked.
   useEffect(() => {
-    if (phase !== "playing" || isTiebreak || !activePlayer || activePlayer.boost) {
+    if (isTiebreak) {
+      setSurpriseBoost(false);
+      setSadomazoActive(false);
+      return;
+    }
+    if ((phase !== "playing" && phase !== "duel") || !activePlayer) return;
+    if (lastDecidedTurnRef.current === turnCount) return;
+    lastDecidedTurnRef.current = turnCount;
+
+    if (activePlayer.boost) {
       setSurpriseBoost(false);
       setSadomazoActive(false);
       return;
