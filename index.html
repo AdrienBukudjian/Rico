@@ -33,6 +33,28 @@
     --teal: #7fb3ac;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  @keyframes bannerPop {
+    0% { transform: scale(0.85); opacity: 0; }
+    60% { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(244,163,0,0.45); }
+    50% { box-shadow: 0 0 16px 4px rgba(244,163,0,0.45); }
+  }
+  @keyframes surpriseFlash {
+    0% { transform: scale(0.92); opacity: 0; background: rgba(244,163,0,0.4); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); opacity: 1; background: rgba(244,163,0,0.12); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
   html, body { height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
   .app {
     min-height: 100vh;
@@ -75,9 +97,10 @@
 
   .primary-btn { background: var(--gold); color:#2a2410; border:none; border-radius:14px; padding:14px; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; flex:1; min-height:48px; }
   .primary-btn:disabled { background: var(--panel-soft); color: var(--chalk-dim); opacity:0.6; }
+  .primary-btn.shake { animation: shake 0.4s ease; }
   .boost-lock-note { font-size:11px; color:#e07a5f; text-align:center; padding:4px 6px; }
   .boost-lock-note.general { color:#f4a300; font-weight:700; }
-  .boost-lock-note.surprise { color:#f4a300; font-weight:700; background: rgba(244,163,0,0.12); border-radius:8px; }
+  .boost-lock-note.surprise { color:#f4a300; font-weight:700; background: rgba(244,163,0,0.12); border-radius:8px; animation: surpriseFlash 0.5s ease; }
   .danger-btn { background: transparent; color: var(--red); border:1.5px solid var(--red); border-radius:14px; padding:14px; font-weight:600; flex:1; min-height:48px; }
 
   .topbar { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
@@ -88,7 +111,7 @@
   .banner { margin-bottom:10px; padding:10px 12px; border-radius:12px; font-size:12.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .banner.gold { background: rgba(232,196,104,0.14); border:1px solid var(--gold); }
   .banner.warn { background: rgba(224,122,109,0.14); border:1px solid var(--red); }
-  .banner.general-round { background: rgba(244,163,0,0.16); border:1px solid #f4a300; color:#f4a300; font-weight:700; justify-content:center; text-align:center; }
+  .banner.general-round { background: rgba(244,163,0,0.16); border:1px solid #f4a300; color:#f4a300; font-weight:700; justify-content:center; text-align:center; animation: bannerPop 0.45s ease, glowPulse 1.8s ease-in-out infinite; }
   .banner-actions { margin-left:auto; display:flex; gap:6px; }
   .mini-btn { background: var(--gold); color:#2a2410; border:none; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
   .mini-btn.ghost { background:transparent; border:1px solid var(--line); color: var(--chalk); }
@@ -102,7 +125,7 @@
   .boost-badge { margin-top:6px; font-size:9.5px; color:#e07a5f; font-weight:700; line-height:1.2; }
   .boost-chip.active { background: #e07a5f; border-color:#e07a5f; color:#1d130f; }
   .boost-tag { margin-left:8px; font-size:11px; color:#e07a5f; font-weight:700; }
-  .boost-tag.partouze { color:#f4a300; }
+  .boost-tag.partouze { color:#f4a300; animation: bannerPop 0.4s ease; display:inline-block; }
   .dice-trail { display:flex; gap:2px; margin-top:4px; font-size:12px; }
   .pip.on { color: var(--gold); }
   .pip.off { color: rgba(245,243,234,0.2); }
@@ -114,6 +137,18 @@
   .pool-indicator { display:flex; align-items:center; gap:4px; margin-bottom:8px; flex-wrap:wrap; font-size:18px; }
   .pool-die.free { color: var(--gold); }
   .pool-die.used { color: rgba(245,243,234,0.2); }
+
+  .dice-roll-toggle { width:100%; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:10px; padding:9px; font-size:12px; margin-bottom:8px; cursor:pointer; }
+  .dice-roll-toggle.active { border-color: var(--gold); color: var(--gold); }
+  .dice-tray { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
+  .dice-tray-grid { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:10px; }
+  .virtual-die { width:52px; height:52px; font-size:30px; background: var(--panel-soft); border:2px solid var(--line); border-radius:12px; color: var(--chalk); display:flex; align-items:center; justify-content:center; }
+  .virtual-die.selected { border-color: var(--gold); color: var(--gold); background: rgba(232,196,104,0.14); }
+  .dice-tray-empty { font-size:12px; color: var(--chalk-dim); }
+  .dice-tray-actions { display:flex; gap:8px; }
+  .dice-tray-actions .mini-btn { flex:1; text-align:center; }
+  .dice-claim-error { font-size:11.5px; color: var(--red); margin-bottom:8px; text-align:center; }
+  .dice-bust-warning { font-size:10.5px; color: var(--chalk-dim); text-align:center; margin-top:8px; }
   .pool-text { font-size:11.5px; color: var(--chalk-dim); margin-left:6px; }
 
   .turn-score { color: var(--gold); font-family:'Kalam'; font-size:16px; margin-bottom:10px; }
@@ -273,6 +308,48 @@ function getExtraCombos(diceCount) {
   return combos;
 }
 
+function scoreDiceSelection(values, diceCount) {
+  if (!values || values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+
+  for (const s of SUITES) {
+    if (s.cost !== values.length) continue;
+    const seq = s.label.split("-").map(Number);
+    if (JSON.stringify(seq) === JSON.stringify(sorted)) {
+      return { points: s.points, label: s.label, cost: s.cost };
+    }
+  }
+  for (const s of SHORT_STRAIGHTS[diceCount] || []) {
+    if (s.cost !== values.length) continue;
+    const seq = s.label.replace("Suite ", "").split("-").map(Number);
+    if (JSON.stringify(seq) === JSON.stringify(sorted)) {
+      return { points: s.points, label: s.label, cost: s.cost };
+    }
+  }
+  if (diceCount === 4 && values.length === 4) {
+    const counts = {};
+    values.forEach((v) => (counts[v] = (counts[v] || 0) + 1));
+    const pairFaces = Object.values(counts).filter((c) => c === 2);
+    if (pairFaces.length === 2) {
+      return { points: 250, label: "Deux paires", cost: 4 };
+    }
+  }
+
+  const allSame = values.every((v) => v === values[0]);
+  if (allSame) {
+    const face = values[0];
+    const count = values.length;
+    if (count === diceCount) {
+      return { instantWin: true };
+    }
+    const row = getComboRows(diceCount).find((r) => r.face === face);
+    if (row && row.tiers[count]) {
+      return { points: row.tiers[count], label: `${TIER_NAMES[count]} ${face}`, cost: count };
+    }
+  }
+  return null;
+}
+
 function DiceTrail({ total, target }) {
   const pct = target > 0 ? Math.min(1, total / target) : 0;
   const filled = Math.round(pct * 6);
@@ -414,6 +491,7 @@ function App() {
   const [diceCount, setDiceCount] = useState(6);
   const [partoozeIndividual, setPartoozeIndividual] = useState(false);
   const [partoozeGeneral, setPartoozeGeneral] = useState(false);
+  const [duelEnabled, setDuelEnabled] = useState(false);
   const [setupError, setSetupError] = useState("");
 
   const [players, setPlayers] = useState([]);
@@ -438,6 +516,24 @@ function App() {
   const [turnBoost, setTurnBoost] = useState(false);
   const [surpriseBoost, setSurpriseBoost] = useState(false);
   const [revealSurprise, setRevealSurprise] = useState(false);
+  const [buttonShake, setButtonShake] = useState(false);
+
+  const [duelStep, setDuelStep] = useState(null);
+  const [duelChallengerId, setDuelChallengerId] = useState(null);
+  const [duelOpponentId, setDuelOpponentId] = useState(null);
+  const [duelP1Score, setDuelP1Score] = useState(null);
+  const [duelResult, setDuelResult] = useState(null);
+  const [duelPool, setDuelPool] = useState(6);
+  const [duelTurnScore, setDuelTurnScore] = useState(0);
+  const [duelTurnAdds, setDuelTurnAdds] = useState([]);
+  const [duelManualInput, setDuelManualInput] = useState("");
+  const [duelManualCost, setDuelManualCost] = useState("1");
+
+  const [diceRollMode, setDiceRollMode] = useState(false);
+  const [diceValues, setDiceValues] = useState([]);
+  const [diceSelected, setDiceSelected] = useState([]);
+  const [claimedThisRoll, setClaimedThisRoll] = useState(false);
+  const [claimError, setClaimError] = useState(null);
   const [generalBoostRound, setGeneralBoostRound] = useState(false);
 
   const [tbPlayers, setTbPlayers] = useState([]);
@@ -510,6 +606,12 @@ function App() {
     setManualCost("1");
     setTurnBoost(false);
     setRevealSurprise(false);
+    setButtonShake(false);
+    setDiceRollMode(false);
+    setDiceValues([]);
+    setDiceSelected([]);
+    setClaimedThisRoll(false);
+    setClaimError(null);
   }
 
   function addCombo(item) {
@@ -766,6 +868,88 @@ function App() {
     }
   }, [activePlayer?.id, turnCount, phase, isTiebreak, partoozeIndividual, generalBoostRound]);
 
+  useEffect(() => {
+    if (!duelEnabled || phase !== "playing" || isTiebreak || generalBoostRound || !activePlayer) return;
+    if (Math.random() < 0.10) {
+      setDuelChallengerId(activePlayer.id);
+      setDuelOpponentId(null);
+      setDuelP1Score(null);
+      setDuelResult(null);
+      resetDuelTurnState();
+      setDuelStep("opponent");
+      setPhase("duel");
+    }
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, generalBoostRound]);
+
+  function rollDie() {
+    return 1 + Math.floor(Math.random() * 6);
+  }
+
+  function toggleDiceRollMode() {
+    setDiceRollMode((m) => {
+      const next = !m;
+      if (next) {
+        setDiceValues(Array.from({ length: pool }, rollDie));
+        setDiceSelected(Array.from({ length: pool }, () => false));
+        setClaimedThisRoll(false);
+        setClaimError(null);
+      }
+      return next;
+    });
+  }
+
+  function toggleDieSelect(i) {
+    setDiceSelected((sel) => sel.map((s, idx) => (idx === i ? !s : s)));
+    setClaimError(null);
+  }
+
+  function attemptClaimSelection() {
+    const selectedIdx = diceSelected.map((s, i) => (s ? i : null)).filter((i) => i !== null);
+    if (selectedIdx.length === 0) return;
+    const selValues = selectedIdx.map((i) => diceValues[i]);
+    const result = scoreDiceSelection(selValues, diceCount);
+    if (!result) {
+      setClaimError("Sélection non reconnue — vérifie ta combinaison.");
+      return;
+    }
+    if (result.instantWin) {
+      if (!isTiebreak) setConfirmInstantWin(true);
+      return;
+    }
+    setTurnScore((s) => s + result.points);
+    setPool((p) => p - result.cost);
+    setTurnAdds((a) => [...a, { label: result.label, points: result.points, cost: result.cost }]);
+    setDiceValues((vals) => vals.filter((_, i) => !selectedIdx.includes(i)));
+    setDiceSelected((sel) => sel.filter((_, i) => !selectedIdx.includes(i)));
+    setClaimedThisRoll(true);
+    setClaimError(null);
+  }
+
+  function rerollOrBust() {
+    if (!claimedThisRoll) {
+      if (isTiebreak) {
+        tbBank(true);
+      } else {
+        bankTurn(true);
+      }
+      return;
+    }
+    setDiceValues((vals) => vals.map(() => rollDie()));
+    setDiceSelected((vals) => vals.map(() => false));
+    setClaimedThisRoll(false);
+    setClaimError(null);
+  }
+
+  useEffect(() => {
+    if (!diceRollMode) return;
+    if (diceValues.length !== pool) {
+      setDiceValues(Array.from({ length: pool }, rollDie));
+      setDiceSelected(Array.from({ length: pool }, () => false));
+      setClaimedThisRoll(false);
+      setClaimError(null);
+    }
+  }, [pool, diceRollMode]);
+
   function attemptBank() {
     if (isTiebreak) {
       tbBank(false);
@@ -775,9 +959,80 @@ function App() {
     if (knownLock) return;
     if (surpriseBoost && pool > 0) {
       setRevealSurprise(true);
+      setButtonShake(true);
+      setTimeout(() => setButtonShake(false), 500);
       return;
     }
     bankTurn(false);
+  }
+
+  function resetDuelTurnState() {
+    setDuelPool(diceCount);
+    setDuelTurnScore(0);
+    setDuelTurnAdds([]);
+    setDuelManualInput("");
+    setDuelManualCost("1");
+  }
+
+  function pickDuelOpponent(id) {
+    setDuelOpponentId(id);
+    resetDuelTurnState();
+    setDuelStep("p1");
+  }
+
+  function addDuelCombo(item) {
+    setDuelTurnScore((s) => s + item.points);
+    setDuelPool((p) => p - item.cost);
+    setDuelTurnAdds((a) => [...a, { label: item.label, points: item.points, cost: item.cost }]);
+  }
+
+  function addDuelManual() {
+    const v = parseInt(duelManualInput, 10);
+    const c = parseInt(duelManualCost, 10);
+    if (!v || v <= 0 || isNaN(c) || c < 0 || c > duelPool) return;
+    setDuelTurnScore((s) => s + v);
+    setDuelPool((p) => p - c);
+    setDuelTurnAdds((a) => [...a, { label: "Ajout libre", points: v, cost: c }]);
+    setDuelManualInput("");
+    setDuelManualCost("1");
+  }
+
+  function resolveDuel(p1Score, p2Score) {
+    const diff = Math.abs(p1Score - p2Score);
+    let winnerId = null;
+    let loserId = null;
+    if (p1Score > p2Score) {
+      winnerId = duelChallengerId;
+      loserId = duelOpponentId;
+    } else if (p2Score > p1Score) {
+      winnerId = duelOpponentId;
+      loserId = duelChallengerId;
+    }
+    if (loserId !== null && diff > 0) {
+      setPlayers((ps) => ps.map((p) => (p.id === loserId ? { ...p, total: p.total - diff } : p)));
+    }
+    setDuelResult({ winnerId, loserId, diff, p1Score, p2Score });
+    setDuelStep("result");
+  }
+
+  function finishDuelTurn(bust) {
+    const score = bust ? 0 : duelTurnScore;
+    if (duelStep === "p1") {
+      setDuelP1Score(score);
+      resetDuelTurnState();
+      setDuelStep("p2");
+    } else if (duelStep === "p2") {
+      resolveDuel(duelP1Score, score);
+    }
+  }
+
+  function endDuel() {
+    setDuelStep(null);
+    setDuelChallengerId(null);
+    setDuelOpponentId(null);
+    setDuelP1Score(null);
+    setDuelResult(null);
+    setPhase("playing");
   }
 
   if (phase === "setup") {
@@ -886,7 +1141,14 @@ function App() {
                   checked={partoozeGeneral}
                   onChange={() => setPartoozeGeneral((m) => !m)}
                 />
-                Partouze générale (~5% de chance par manche, tout le monde)
+                Partouze générale (~10% de chance par manche, tout le monde)
+              </label>
+            </div>
+
+            <div className="field">
+              <label className="checkbox-field">
+                <input type="checkbox" checked={duelEnabled} onChange={() => setDuelEnabled((m) => !m)} />
+                🍆 Qui a la plus grosse (mini-jeu duel entre 2 joueurs, en pause)
               </label>
             </div>
 
@@ -981,6 +1243,112 @@ function App() {
     );
   }
 
+  if (phase === "duel") {
+    const challenger = players.find((p) => p.id === duelChallengerId);
+    const opponent = players.find((p) => p.id === duelOpponentId);
+
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="topbar">
+            <div className="topbar-left">
+              <span>🍆</span>
+              <span>Qui a la plus grosse</span>
+            </div>
+          </div>
+
+          <div className="setup-card">
+            {duelStep === "opponent" && (
+              <>
+                <h1>🍆 Qui a la plus grosse</h1>
+                <p className="subtitle">
+                  Duel surprise ! {challenger?.name} est désigné — il défie qui ?
+                </p>
+                <div className="starter-row">
+                  {players.filter((p) => p.id !== duelChallengerId).map((p) => (
+                    <button key={p.id} className="starter-chip" onClick={() => pickDuelOpponent(p.id)}>
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(duelStep === "p1" || duelStep === "p2") && (
+              <>
+                <h1>Duel : {challenger?.name} vs {opponent?.name}</h1>
+                <p className="subtitle">
+                  {duelStep === "p1"
+                    ? `Au tour de ${challenger?.name} — s'arrête quand il veut`
+                    : `Au tour de ${opponent?.name} — doit dépasser ${duelP1Score} pts`}
+                </p>
+
+                <PoolIndicator pool={duelPool} diceCount={diceCount} />
+                <div className="turn-score">{duelTurnScore} pts ce tour</div>
+
+                <ComboTable pool={duelPool} onAdd={addDuelCombo} diceCount={diceCount} />
+                <TurnBreakdown adds={duelTurnAdds} />
+
+                <div className="manual-row">
+                  <input
+                    type="number"
+                    className="manual-points"
+                    placeholder="Points"
+                    value={duelManualInput}
+                    onChange={(e) => setDuelManualInput(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    className="manual-cost"
+                    placeholder="Dés"
+                    value={duelManualCost}
+                    min={0}
+                    max={duelPool}
+                    onChange={(e) => setDuelManualCost(e.target.value)}
+                  />
+                  <button className="chip manual-add" onClick={addDuelManual}>➕</button>
+                </div>
+
+                <div className="footer-actions">
+                  <button className="danger-btn" onClick={() => finishDuelTurn(true)}>
+                    Perdu (0)
+                  </button>
+                  <button className="primary-btn" onClick={() => finishDuelTurn(false)}>
+                    S'arrêter ici
+                  </button>
+                </div>
+              </>
+            )}
+
+            {duelStep === "result" && duelResult && (
+              <>
+                <h1>Résultat du duel</h1>
+                <div className="ranking">
+                  <div className="rank-row">
+                    <span className="rank-name">{challenger?.name}</span>
+                    <span className="rank-score">{duelResult.p1Score} pts</span>
+                  </div>
+                  <div className="rank-row">
+                    <span className="rank-name">{opponent?.name}</span>
+                    <span className="rank-score">{duelResult.p2Score} pts</span>
+                  </div>
+                </div>
+                <p className="subtitle">
+                  {duelResult.diff === 0
+                    ? "Égalité parfaite — personne ne perd de points."
+                    : `🏆 ${players.find((p) => p.id === duelResult.winnerId)?.name} gagne le duel ! ${players.find((p) => p.id === duelResult.loserId)?.name} perd ${duelResult.diff} pts sur son score principal.`}
+                </p>
+                <button className="primary-btn" onClick={endDuel}>
+                  Reprendre la partie
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <div className="phone">
@@ -1047,6 +1415,48 @@ function App() {
           </div>
 
           <PoolIndicator pool={pool} diceCount={diceCount} />
+
+          <button
+            className={"dice-roll-toggle" + (diceRollMode ? " active" : "")}
+            onClick={toggleDiceRollMode}
+          >
+            🎲 Tu n'as pas de dé ? {diceRollMode ? "— masquer" : "— lancer virtuellement"}
+          </button>
+
+          {diceRollMode && (
+            <div className="dice-tray">
+              <div className="dice-tray-grid">
+                {diceValues.map((v, i) => (
+                  <button
+                    key={i}
+                    className={"virtual-die" + (diceSelected[i] ? " selected" : "")}
+                    onClick={() => toggleDieSelect(i)}
+                    title={diceSelected[i] ? "Désélectionner" : "Sélectionner"}
+                  >
+                    {DICE_UNICODE[v - 1]}
+                  </button>
+                ))}
+                {diceValues.length === 0 && <span className="dice-tray-empty">Plus de dé à lancer.</span>}
+              </div>
+
+              {claimError && <div className="dice-claim-error">{claimError}</div>}
+
+              <div className="dice-tray-actions">
+                <button className="mini-btn" onClick={attemptClaimSelection}>
+                  🔒 Bloquer ma sélection
+                </button>
+                <button className="mini-btn ghost" onClick={rerollOrBust}>
+                  🎲 Relancer le reste
+                </button>
+              </div>
+              {!claimedThisRoll && (
+                <div className="dice-bust-warning">
+                  ⚠️ Si tu relances sans avoir bloqué au moins un dé sur ce lancer, ton score de ce tour passe à 0.
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="turn-score">{turnScore} pts ce tour</div>
           {!isTiebreak && activePlayer && (() => {
             const mult = (activePlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1);
@@ -1242,7 +1652,7 @@ function App() {
             Perdu (0)
           </button>
           <button
-            className="primary-btn"
+            className={"primary-btn" + (buttonShake ? " shake" : "")}
             disabled={
               (activePlayer && (activePlayer.boost || turnBoost || generalBoostRound) && pool > 0) ||
               (!isTiebreak && revealSurprise && pool > 0)
