@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Carnet de scores — Jeu de dés</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+  html, body { margin:0; padding:0; background:#14261c; }
+  :root {
+    --bg: #14261c;
+    --panel: #1d3327;
+    --panel-soft: #234132;
+    --line: rgba(245,243,234,0.16);
+    --chalk: #f5f3ea;
+    --chalk-dim: #9db2a5;
+    --gold: #e8c468;
+    --red: #e07a6d;
+    --teal: #7fb3ac;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  .app { min-height:100vh; background: var(--bg); display:flex; justify-content:center; padding: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .phone { width:100%; max-width:460px; color: var(--chalk); font-family:'Inter',sans-serif; padding-bottom: 12px; }
+
+  h1 { font-family:'Kalam',cursive; font-weight:700; margin:0; font-size:22px; }
+  .title-row { display:flex; align-items:center; gap:8px; }
+  .title-icon { font-size:24px; }
+  .subtitle { color: var(--chalk-dim); margin:6px 0 18px; font-size:13px; }
+
+  .setup-card, .finished-card { background: var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px; }
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color: var(--chalk-dim); margin-bottom:7px; }
+
+  .stepper { display:flex; align-items:center; gap:14px; }
+  .stepper button { background: var(--panel-soft); color: var(--chalk); border:1px solid var(--line); width:38px; height:38px; border-radius:10px; font-size:18px; }
+  .stepper span { font-family:'Kalam'; font-size:20px; min-width:22px; text-align:center; }
+
+  .names-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  input { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:10px; padding:11px; font-family:'Inter'; font-size:14px; outline:none; width:100%; }
+  input::placeholder { color: var(--chalk-dim); }
+
+  .starter-row { display:flex; flex-wrap:wrap; gap:7px; }
+  .starter-chip { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); padding:8px 12px; border-radius:999px; font-size:13px; }
+  .starter-chip.active { background: var(--gold); color:#2a2410; border-color: var(--gold); font-weight:600; }
+
+  .error { color: var(--red); font-size:13px; margin-bottom:12px; }
+
+  .primary-btn { background: var(--gold); color:#2a2410; border:none; border-radius:14px; padding:14px; font-weight:700; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; flex:1; min-height:48px; }
+  .danger-btn { background: transparent; color: var(--red); border:1.5px solid var(--red); border-radius:14px; padding:14px; font-weight:600; flex:1; min-height:48px; }
+
+  .topbar { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
+  .topbar-left { display:flex; align-items:center; gap:6px; font-family:'Kalam'; font-size:15px; }
+  .topbar-right { color: var(--chalk-dim); font-size:12px; margin-left:auto; }
+  .ghost-btn { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:8px; padding:7px 9px; }
+
+  .banner { margin-bottom:10px; padding:10px 12px; border-radius:12px; font-size:12.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .banner.gold { background: rgba(232,196,104,0.14); border:1px solid var(--gold); }
+  .banner.warn { background: rgba(224,122,109,0.14); border:1px solid var(--red); }
+  .banner-actions { margin-left:auto; display:flex; gap:6px; }
+  .mini-btn { background: var(--gold); color:#2a2410; border:none; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
+  .mini-btn.ghost { background:transparent; border:1px solid var(--line); color: var(--chalk); }
+
+  .player-strip { display:flex; gap:8px; overflow-x:auto; margin-bottom:12px; padding-bottom:4px; }
+  .player-card { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 12px; min-width:88px; flex-shrink:0; }
+  .player-card.current { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+  .player-card.boosted { border-color: #e07a5f; }
+  .player-name { font-size:11px; color: var(--chalk-dim); }
+  .player-score { font-family:'Kalam'; font-size:19px; font-weight:700; }
+  .boost-badge { margin-top:6px; font-size:9.5px; color:#e07a5f; font-weight:700; line-height:1.2; }
+  .boost-chip.active { background: #e07a5f; border-color:#e07a5f; color:#1d130f; }
+  .boost-tag { margin-left:8px; font-size:11px; color:#e07a5f; font-weight:700; }
+  .dice-trail { display:flex; gap:2px; margin-top:4px; font-size:12px; }
+  .pip.on { color: var(--gold); }
+  .pip.off { color: rgba(245,243,234,0.2); }
+
+  .turn-card { background: var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; }
+  .turn-head { font-family:'Kalam'; font-size:17px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  .defense-badge { font-family:'Inter'; font-size:10.5px; background: var(--teal); color:#0d2a26; padding:3px 8px; border-radius:999px; display:flex; align-items:center; gap:4px; }
+
+  .pool-indicator { display:flex; align-items:center; gap:4px; margin-bottom:8px; flex-wrap:wrap; font-size:18px; }
+  .pool-die.free { color: var(--gold); }
+  .pool-die.used { color: rgba(245,243,234,0.2); }
+  .pool-text { font-size:11.5px; color: var(--chalk-dim); margin-left:6px; }
+
+  .turn-score { color: var(--gold); font-family:'Kalam'; font-size:16px; margin-bottom:10px; }
+  .turn-potential { color: var(--chalk-dim); font-size:12.5px; margin:-6px 0 10px; }
+  .turn-potential strong { color: var(--chalk); font-family:'Kalam'; font-size:14px; }
+
+  .combo-table { display:flex; flex-direction:column; gap:4px; margin-bottom:10px; }
+  .ct-row { display:grid; grid-template-columns: 34px repeat(5, 1fr); gap:4px; }
+  .ct-cell { display:flex; align-items:center; justify-content:center; }
+  .ct-header .ct-colhead { font-size:10px; color: var(--chalk-dim); text-align:center; }
+  .ct-rowhead { background: var(--panel-soft); border-radius:8px; height:40px; color: var(--gold); font-size:18px; }
+  .ct-empty { height:40px; }
+  .ct-btn { height:40px; border-radius:8px; background: var(--panel-soft); border:1px solid var(--line); color: var(--gold); font-weight:700; font-size:14px; font-family:'Kalam'; }
+  .ct-btn.ct-disabled { opacity:0.3; color: var(--chalk-dim); }
+  .ct-suites { display:flex; gap:6px; margin-top:6px; }
+  .suite-chip { flex:1; }
+
+  .chip { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:10px; padding:7px 8px; font-size:11.5px; display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-height:46px; justify-content:center; }
+  .chip-top { display:flex; align-items:center; gap:4px; }
+  .chip-label { line-height:1.15; }
+  .chip-bottom { display:flex; align-items:center; gap:6px; }
+  .chip-points { color: var(--gold); font-weight:700; font-size:11px; }
+  .chip-cost { color: var(--chalk-dim); font-size:10px; }
+  .chip-disabled { opacity: 0.35; }
+  .chip-disabled .chip-points { color: var(--chalk-dim); }
+
+  .turn-breakdown { display:flex; flex-wrap:wrap; gap:5px; margin: 2px 0 10px; }
+  .combo-tag { background: rgba(232,196,104,0.14); border:1px solid var(--gold); color: var(--chalk); border-radius:999px; padding:4px 9px; font-size:11px; }
+  .combo-tag b { color: var(--gold); }
+  .combo-tag.small { padding:3px 7px; font-size:10.5px; background: var(--panel-soft); border-color: var(--line); }
+
+  .manual-row { display:flex; gap:6px; margin-bottom:10px; }
+  .manual-points { flex:2; }
+  .manual-cost { flex:1; }
+  .manual-add { flex-direction:row; align-items:center; justify-content:center; min-width:44px; flex:0 0 44px; }
+
+  .turn-actions-secondary { display:flex; gap:14px; margin-bottom:10px; }
+
+  .instant-win-btn { width:100%; background:transparent; border:1.5px dashed var(--gold); color: var(--gold); border-radius:12px; padding:10px; font-size:12.5px; display:flex; align-items:center; justify-content:center; gap:7px; min-height:42px; }
+  .turn-boost-checkbox { width:100%; display:flex; align-items:center; gap:8px; background: var(--panel-soft); border:1.5px dashed #e07a5f; color:#e07a5f; border-radius:12px; padding:9px 12px; font-size:12.5px; margin-bottom:10px; cursor:pointer; box-sizing:border-box; }
+  .turn-boost-checkbox input { width:16px; height:16px; accent-color:#e07a5f; }
+  .turn-boost-checkbox.active { background:#e07a5f; border-style:solid; color:#1d130f; font-weight:700; }
+
+  .history { margin-bottom: 14px; }
+  .history-title { font-family:'Kalam'; font-size:15px; margin-bottom:6px; color: var(--chalk-dim); }
+  .history-list { display:flex; flex-direction:column; gap:5px; max-height:220px; overflow-y:auto; }
+  .history-row { display:flex; flex-direction:column; gap:5px; font-size:12px; border-bottom:1px dashed var(--line); padding-bottom:7px; }
+  .history-row-top { display:flex; gap:8px; align-items:center; }
+  .history-round { color: var(--chalk-dim); min-width:22px; }
+  .history-name { font-weight:600; min-width:60px; }
+  .history-points { color: var(--gold); }
+  .history-total { margin-left:auto; color: var(--chalk-dim); }
+  .edit-btn { background:none; border:none; color: var(--chalk-dim); cursor:pointer; font-size:12px; padding:0 0 0 4px; }
+  .edited-tag { color: var(--chalk-dim); font-size:10.5px; font-style:italic; padding-left:30px; }
+  .edit-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; background: var(--panel-soft); border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
+  .edit-bust-toggle { display:flex; align-items:center; gap:5px; font-size:11.5px; color: var(--chalk-dim); }
+  .edit-points-input { width:80px; background: var(--panel); border:1px solid var(--line); border-radius:6px; color: var(--chalk); padding:4px 6px; font-size:12.5px; }
+  .history-combos { display:flex; flex-wrap:wrap; gap:4px; padding-left:30px; }
+  .history-empty { color: var(--chalk-dim); font-size:12.5px; }
+
+  .footer-actions { position: sticky; bottom: 4px; display:flex; gap:10px; background: var(--bg); padding-top:6px; }
+
+  .finished-card { text-align:center; }
+  .trophy { font-size:36px; margin-bottom:6px; }
+  .ranking { margin:16px 0; display:flex; flex-direction:column; gap:7px; }
+  .rank-row { display:flex; gap:10px; align-items:center; background: var(--panel-soft); border-radius:10px; padding:8px 12px; border:1px solid var(--line); }
+  .rank-row.win { border-color: var(--gold); }
+  .rank-row.lose { border-color: var(--red); background: rgba(224,122,109,0.10); }
+  .rank-pos { color: var(--chalk-dim); min-width:14px; }
+  .rank-name { font-weight:600; flex:1; text-align:left; }
+  .rank-icon.gold { color: var(--gold); }
+  .rank-icon.lose-badge { font-size:10.5px; color: var(--red); background: rgba(224,122,109,0.16); padding:2px 7px; border-radius:999px; }
+  .rank-score { font-family:'Kalam'; color: var(--gold); }
+
+  .stats-title { font-family:'Kalam'; font-size:15px; color: var(--chalk-dim); margin:18px 0 8px; text-align:left; }
+  .stat-row { display:flex; align-items:center; gap:10px; background: var(--panel-soft); border-radius:10px; padding:8px 12px; border:1px solid var(--line); }
+  .stat-label { flex:1; text-align:left; font-size:12.5px; }
+  .stat-value { font-family:'Kalam'; color: var(--gold); font-size:14px; text-align:right; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const DICE_UNICODE = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
+
+const TIER_NAMES = { 1: "Un", 2: "Deux", 3: "Trois", 4: "Quatre", 5: "Cinq" };
+const FACE_ROWS = [
+  { face: 1, tiers: { 1: 100, 2: 200, 3: 300, 4: 600, 5: 1200 } },
+  { face: 2, tiers: { 3: 200, 4: 400, 5: 800 } },
+  { face: 3, tiers: { 3: 300, 4: 600, 5: 1200 } },
+  { face: 4, tiers: { 3: 400, 4: 800, 5: 1600 } },
+  { face: 5, tiers: { 1: 50, 2: 100, 3: 500, 4: 1000, 5: 1500 } },
+  { face: 6, tiers: { 3: 600, 4: 1200, 5: 2400 } },
+];
+const SUITES = [
+  { label: "1-2-3-4-5", points: 500, cost: 5 },
+  { label: "2-3-4-5-6", points: 1000, cost: 5 },
+  { label: "1-2-3-4-5-6", points: 2000, cost: 6 },
+];
+
+const SHORT_STRAIGHTS = {
+  4: [
+    { label: "Suite 1-2-3-4", points: 350, cost: 4 },
+    { label: "Suite 2-3-4-5", points: 400, cost: 4 },
+    { label: "Suite 3-4-5-6", points: 450, cost: 4 },
+  ],
+  3: [
+    { label: "Suite 1-2-3", points: 200, cost: 3 },
+    { label: "Suite 2-3-4", points: 250, cost: 3 },
+    { label: "Suite 3-4-5", points: 300, cost: 3 },
+    { label: "Suite 4-5-6", points: 350, cost: 3 },
+  ],
+};
+
+function getComboRows(diceCount) {
+  if (diceCount === 3) {
+    return FACE_ROWS.map((row) => {
+      if (row.face === 1 || row.face === 5) {
+        const tiers = {};
+        [1, 2, 3].forEach((k) => { if (row.tiers[k]) tiers[k] = row.tiers[k]; });
+        return { face: row.face, tiers };
+      }
+      const tiers = { 2: row.face * 30 };
+      if (row.tiers[3]) tiers[3] = row.tiers[3];
+      return { face: row.face, tiers };
+    });
+  }
+  if (diceCount === 4) {
+    return FACE_ROWS.map((row) => {
+      const tiers = {};
+      [1, 2, 3, 4].forEach((k) => { if (row.tiers[k]) tiers[k] = row.tiers[k]; });
+      return { face: row.face, tiers };
+    }).filter((row) => Object.keys(row.tiers).length > 0);
+  }
+  const maxTier = diceCount - 1;
+  return FACE_ROWS.map((row) => {
+    const tiers = {};
+    Object.keys(row.tiers).forEach((k) => {
+      if (Number(k) <= maxTier) tiers[k] = row.tiers[k];
+    });
+    return { face: row.face, tiers };
+  }).filter((row) => Object.keys(row.tiers).length > 0);
+}
+
+function getExtraCombos(diceCount) {
+  const combos = [];
+  if (diceCount === 4) combos.push({ label: "Deux paires", points: 250, cost: 4 });
+  if (SHORT_STRAIGHTS[diceCount]) combos.push(...SHORT_STRAIGHTS[diceCount]);
+  return combos;
+}
+
+function DiceTrail({ total, target }) {
+  const pct = target > 0 ? Math.min(1, total / target) : 0;
+  const filled = Math.round(pct * 6);
+  return (
+    <div className="dice-trail">
+      {DICE_UNICODE.map((ch, i) => (
+        <span key={i} className={i < filled ? "pip on" : "pip off"}>{ch}</span>
+      ))}
+    </div>
+  );
+}
+
+function PoolIndicator({ pool, diceCount }) {
+  return (
+    <div className="pool-indicator">
+      {Array.from({ length: diceCount }).map((_, i) => (
+        <span key={i} className={i < pool ? "pool-die free" : "pool-die used"}>{DICE_UNICODE[i]}</span>
+      ))}
+      <span className="pool-text">{pool}/{diceCount} dés libres</span>
+    </div>
+  );
+}
+
+function ComboTable({ pool, onAdd, diceCount }) {
+  const numCols = diceCount <= 4 ? diceCount : diceCount - 1;
+  const cols = Array.from({ length: numCols }, (_, i) => i + 1);
+  const rows = getComboRows(diceCount);
+  const suites = [...SUITES.filter((s) => s.cost <= diceCount), ...getExtraCombos(diceCount)];
+  return (
+    <div className="combo-table">
+      <div className="ct-row ct-header">
+        <div className="ct-cell ct-corner" />
+        {cols.map((c) => (
+          <div key={c} className="ct-cell ct-colhead">
+            {c} dé{c > 1 ? "s" : ""}
+          </div>
+        ))}
+      </div>
+      {rows.map((row) => (
+        <div className="ct-row" key={row.face}>
+          <div className="ct-cell ct-rowhead">{DICE_UNICODE[row.face - 1]}</div>
+          {cols.map((c) => {
+            const points = row.tiers[c];
+            if (!points) return <div key={c} className="ct-cell ct-empty" />;
+            const disabled = c > pool;
+            const label = `${TIER_NAMES[c]} ${row.face}`;
+            return (
+              <button
+                key={c}
+                className={"ct-cell ct-btn" + (disabled ? " ct-disabled" : "")}
+                disabled={disabled}
+                onClick={() => onAdd({ label, points, cost: c })}
+              >
+                {points}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+      {suites.length > 0 && (
+        <div className="ct-suites">
+          {suites.map((s) => {
+            const disabled = s.cost > pool;
+            return (
+              <button
+                key={s.label}
+                className={"chip suite-chip" + (disabled ? " chip-disabled" : "")}
+                disabled={disabled}
+                onClick={() => onAdd(s)}
+              >
+                <span className="chip-top">
+                  <span className="chip-label">{s.label}</span>
+                  {disabled && <span>🔒</span>}
+                </span>
+                <span className="chip-bottom">
+                  <span className="chip-points">+{s.points}</span>
+                  <span className="chip-cost">{s.cost} dés</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TurnBreakdown({ adds }) {
+  if (adds.length === 0) return null;
+  return (
+    <div className="turn-breakdown">
+      {adds.map((a, i) => (
+        <span key={i} className="combo-tag">
+          {a.label} <b>+{a.points}</b>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function computePlayerStats(players, history) {
+  const byId = {};
+  players.forEach((p) => { byId[p.id] = { id: p.id, name: p.name, points: [] }; });
+  history.forEach((h) => {
+    if (h.special) return;
+    const player = players.find((p) => p.name === h.playerName);
+    if (!player) return;
+    byId[player.id].points.push(h.points);
+  });
+  return Object.values(byId).map((s) => {
+    const count = s.points.length;
+    const sum = s.points.reduce((a, b) => a + b, 0);
+    return {
+      name: s.name,
+      count,
+      best: count ? Math.max(...s.points) : 0,
+      avg: count ? sum / count : 0,
+      zeros: s.points.filter((v) => v === 0).length,
+    };
+  });
+}
+
+function pickExtreme(list, key, mode) {
+  if (list.length === 0) return { names: [], value: 0 };
+  const values = list.map((l) => l[key]);
+  const target = mode === "max" ? Math.max(...values) : Math.min(...values);
+  const names = list.filter((l) => l[key] === target).map((l) => l.name);
+  return { names, value: target };
+}
+
+function App() {
+  const [phase, setPhase] = useState("setup");
+  const [playerCount, setPlayerCount] = useState(4);
+  const [names, setNames] = useState(["", "", "", ""]);
+  const [targetStr, setTargetStr] = useState("3000");
+  const target = parseInt(targetStr, 10) || 0;
+  const [startIndex, setStartIndex] = useState(0);
+  const [boostedIndices, setBoostedIndices] = useState([]);
+  const [diceCount, setDiceCount] = useState(6);
+  const [setupError, setSetupError] = useState("");
+
+  const [players, setPlayers] = useState([]);
+  const [turnCount, setTurnCount] = useState(0);
+  const [turnScore, setTurnScore] = useState(0);
+  const [pool, setPool] = useState(diceCount);
+  const [turnAdds, setTurnAdds] = useState([]);
+  const [manualInput, setManualInput] = useState("");
+  const [manualCost, setManualCost] = useState("1");
+  const [history, setHistory] = useState([]);
+  const [triggered, setTriggered] = useState(false);
+  const [turnsLeftAfterTrigger, setTurnsLeftAfterTrigger] = useState(0);
+  const [triggerInfo, setTriggerInfo] = useState(null);
+  const [confirmInstantWin, setConfirmInstantWin] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [winner, setWinner] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editPoints, setEditPoints] = useState("");
+  const [editBust, setEditBust] = useState(false);
+  const [turnBoost, setTurnBoost] = useState(false);
+
+  const [tbPlayers, setTbPlayers] = useState([]);
+  const [tbIndex, setTbIndex] = useState(0);
+  const [tbScores, setTbScores] = useState({});
+  const [tbHistory, setTbHistory] = useState([]);
+  const [tbRound, setTbRound] = useState(1);
+
+  const n = players.length;
+  const currentIdx = n > 0 ? (startIndex + turnCount) % n : 0;
+  const currentPlayer = players[currentIdx];
+
+  function updatePlayerCount(delta) {
+    const nc = Math.min(8, Math.max(2, playerCount + delta));
+    setPlayerCount(nc);
+    setNames((prev) => {
+      const copy = [...prev];
+      while (copy.length < nc) copy.push("");
+      copy.length = nc;
+      return copy;
+    });
+    if (startIndex >= nc) setStartIndex(0);
+    setBoostedIndices((prev) => prev.filter((i) => i < nc));
+  }
+
+  function toggleBoostedSetup(i) {
+    setBoostedIndices((prev) =>
+      prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]
+    );
+  }
+
+  function updateDiceCount(delta) {
+    setDiceCount((d) => Math.min(6, Math.max(5, d + delta)));
+  }
+
+  function startGame() {
+    const trimmed = names.map((s) => s.trim());
+    if (trimmed.some((s) => s.length === 0)) {
+      setSetupError("Donne un nom à chaque joueur.");
+      return;
+    }
+    if (!target || target <= 0) {
+      setSetupError("Le score à atteindre doit être supérieur à 0.");
+      return;
+    }
+    setSetupError("");
+    const ps = trimmed.map((nm, i) => ({ id: i, name: nm, total: 0, boost: boostedIndices.includes(i) }));
+    setPlayers(ps);
+    setTurnCount(0);
+    resetTurnState();
+    setHistory([]);
+    setTriggered(false);
+    setTurnsLeftAfterTrigger(0);
+    setTriggerInfo(null);
+    setConfirmInstantWin(false);
+    setWinner(null);
+    setPhase("playing");
+  }
+
+  function goToSetupKeepConfig() {
+    setConfirmReset(false);
+    setPhase("setup");
+  }
+
+  function resetTurnState() {
+    setTurnScore(0);
+    setTurnAdds([]);
+    setPool(diceCount);
+    setManualInput("");
+    setManualCost("1");
+    setTurnBoost(false);
+  }
+
+  function addCombo(item) {
+    setTurnScore((s) => s + item.points);
+    setPool((p) => p - item.cost);
+    setTurnAdds((a) => [...a, { label: item.label, points: item.points, cost: item.cost }]);
+  }
+
+  function addManual() {
+    const v = parseInt(manualInput, 10);
+    const c = parseInt(manualCost, 10);
+    if (!v || v <= 0 || isNaN(c) || c < 0 || c > pool) return;
+    setTurnScore((s) => s + v);
+    setPool((p) => p - c);
+    setTurnAdds((a) => [...a, { label: "Ajout libre", points: v, cost: c }]);
+    setManualInput("");
+    setManualCost("1");
+  }
+
+  function undoLastAdd() {
+    setTurnAdds((a) => {
+      if (a.length === 0) return a;
+      const copy = [...a];
+      const removed = copy.pop();
+      setTurnScore((s) => s - removed.points);
+      setPool((p) => p + removed.cost);
+      return copy;
+    });
+  }
+
+  function finalizeGame(playersArr) {
+    const maxScore = Math.max(...playersArr.map((p) => p.total));
+    const top = playersArr.filter((p) => p.total === maxScore);
+    if (top.length === 1) {
+      setWinner({ ids: [top[0].id], score: maxScore });
+      setPhase("finished");
+    } else {
+      setTbPlayers(top.map((p) => p.id));
+      setTbScores({});
+      setTbIndex(0);
+      setTbHistory([]);
+      setTbRound(1);
+      setPhase("tiebreak");
+    }
+  }
+
+  function bankTurn(bust) {
+    if (!currentPlayer) return;
+    const base = bust ? 0 : turnScore;
+    const multiplier = !bust ? (currentPlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1) : 1;
+    const points = base * multiplier;
+    const newTotal = currentPlayer.total + points;
+    const updated = players.map((p) =>
+      p.id === currentPlayer.id ? { ...p, total: newTotal } : p
+    );
+    setPlayers(updated);
+    setHistory((h) => [
+      ...h,
+      {
+        round: Math.floor(turnCount / n) + 1,
+        playerName: currentPlayer.name,
+        points,
+        bust,
+        total: newTotal,
+        boosted: !bust && currentPlayer.boost,
+        turnBoosted: !bust && turnBoost,
+        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points })),
+      },
+    ]);
+    resetTurnState();
+
+    if (!triggered && newTotal >= target) {
+      const posInRound = turnCount % n;
+      const remaining = n - 1 - posInRound;
+      setTriggered(true);
+      setTriggerInfo({ name: currentPlayer.name, score: newTotal });
+      if (remaining === 0) {
+        finalizeGame(updated);
+        return;
+      }
+      setTurnsLeftAfterTrigger(remaining);
+      setTurnCount((c) => c + 1);
+      return;
+    }
+
+    if (triggered) {
+      const nt = turnsLeftAfterTrigger - 1;
+      if (nt <= 0) {
+        finalizeGame(updated);
+        return;
+      }
+      setTurnsLeftAfterTrigger(nt);
+      setTurnCount((c) => c + 1);
+      return;
+    }
+
+    setTurnCount((c) => c + 1);
+  }
+
+  function openEditEntry(index) {
+    const entry = history[index];
+    if (!entry || entry.special) return;
+    setEditingIndex(index);
+    setEditPoints(String(entry.points));
+    setEditBust(entry.bust);
+  }
+
+  function cancelEditEntry() {
+    setEditingIndex(null);
+    setEditPoints("");
+    setEditBust(false);
+  }
+
+  function saveEditEntry() {
+    const index = editingIndex;
+    const entry = history[index];
+    if (!entry) { cancelEditEntry(); return; }
+    const finalPoints = editBust ? 0 : Math.max(0, parseInt(editPoints, 10) || 0);
+    const delta = finalPoints - entry.points;
+    const playerName = entry.playerName;
+
+    if (delta !== 0 || editBust !== entry.bust) {
+      setHistory((h) =>
+        h.map((e, i) => {
+          if (i < index || e.playerName !== playerName) return e;
+          if (i === index) {
+            return { ...e, points: finalPoints, bust: editBust, total: e.total + delta, edited: true };
+          }
+          return { ...e, total: e.total + delta };
+        })
+      );
+      setPlayers((ps) =>
+        ps.map((p) => (p.name === playerName ? { ...p, total: p.total + delta } : p))
+      );
+    }
+    cancelEditEntry();
+  }
+
+  function instantWin() {
+    if (!currentPlayer) return;
+    setHistory((h) => [
+      ...h,
+      {
+        round: Math.floor(turnCount / n) + 1,
+        playerName: currentPlayer.name,
+        points: 0,
+        bust: false,
+        total: currentPlayer.total,
+        special: `${diceCount} dés identiques — victoire immédiate`,
+      },
+    ]);
+    setWinner({ ids: [currentPlayer.id], score: currentPlayer.total });
+    setConfirmInstantWin(false);
+    setPhase("finished");
+  }
+
+  const tbCurrentId = tbPlayers[tbIndex];
+  const tbCurrentPlayer = players.find((p) => p.id === tbCurrentId);
+
+  function tbBank(bust) {
+    const points = bust ? 0 : turnScore;
+    setTbHistory((h) => [
+      ...h,
+      {
+        round: tbRound,
+        playerName: tbCurrentPlayer.name,
+        points,
+        bust,
+        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points })),
+      },
+    ]);
+    resetTurnState();
+    const nextIndex = tbIndex + 1;
+    const scores = { ...tbScores, [tbCurrentId]: points };
+    setTbScores(scores);
+    if (nextIndex >= tbPlayers.length) {
+      const maxScore = Math.max(...tbPlayers.map((id) => scores[id] ?? 0));
+      const top = tbPlayers.filter((id) => (scores[id] ?? 0) === maxScore);
+      if (top.length === 1) {
+        setWinner({ ids: top, score: maxScore });
+        setPhase("finished");
+      } else {
+        setTbPlayers(top);
+        setTbScores({});
+        setTbIndex(0);
+        setTbRound((r) => r + 1);
+      }
+    } else {
+      setTbIndex(nextIndex);
+    }
+  }
+
+  const isTiebreak = phase === "tiebreak";
+  const activePlayer = isTiebreak ? tbCurrentPlayer : currentPlayer;
+
+  if (phase === "setup") {
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="setup-card">
+            <div className="title-row">
+              <span className="title-icon">🎲</span>
+              <h1>Carnet de scores</h1>
+            </div>
+            <p className="subtitle">Configure la partie avant de lancer les dés.</p>
+
+            <div className="field">
+              <label>Nombre de joueurs</label>
+              <div className="stepper">
+                <button onClick={() => updatePlayerCount(-1)}>−</button>
+                <span>{playerCount}</span>
+                <button onClick={() => updatePlayerCount(1)}>+</button>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Nombre de dés (5 ou 6)</label>
+              <div className="stepper">
+                <button onClick={() => updateDiceCount(-1)}>−</button>
+                <span>{diceCount}</span>
+                <button onClick={() => updateDiceCount(1)}>+</button>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Noms des joueurs</label>
+              <div className="names-grid">
+                {names.map((nm, i) => (
+                  <input
+                    key={i}
+                    value={nm}
+                    placeholder={`Joueur ${i + 1}`}
+                    onChange={(e) => {
+                      const copy = [...names];
+                      copy[i] = e.target.value;
+                      setNames(copy);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Score à atteindre</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="target-input"
+                value={targetStr}
+                placeholder="3000"
+                onChange={(e) => setTargetStr(e.target.value.replace(/[^0-9]/g, ""))}
+              />
+            </div>
+
+            <div className="field">
+              <label>Qui commence ?</label>
+              <div className="starter-row">
+                {names.map((nm, i) => (
+                  <button
+                    key={i}
+                    className={"starter-chip" + (startIndex === i ? " active" : "")}
+                    onClick={() => setStartIndex(i)}
+                  >
+                    {nm.trim() || `Joueur ${i + 1}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="field">
+              <label>🍆 Grosse bite (score x2 chaque manche)</label>
+              <div className="starter-row">
+                {names.map((nm, i) => (
+                  <button
+                    key={i}
+                    className={"starter-chip boost-chip" + (boostedIndices.includes(i) ? " active" : "")}
+                    onClick={() => toggleBoostedSetup(i)}
+                  >
+                    {nm.trim() || `Joueur ${i + 1}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {setupError && <div className="error">{setupError}</div>}
+
+            <button className="primary-btn start-btn" onClick={startGame}>
+              Lancer la partie
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "finished") {
+    const sorted = [...players].sort((a, b) => b.total - a.total);
+    const winnerNames = winner
+      ? players.filter((p) => winner.ids.includes(p.id)).map((p) => p.name)
+      : [];
+    const minScore = Math.min(...players.map((p) => p.total));
+    const loserIds = players
+      .filter((p) => p.total === minScore && !winner?.ids.includes(p.id))
+      .map((p) => p.id);
+
+    const playerStats = computePlayerStats(players, history);
+    const playedStats = playerStats.filter((s) => s.count > 0);
+    const bestTurn = pickExtreme(playerStats, "best", "max");
+    const bestAvg = pickExtreme(playedStats, "avg", "max");
+    const worstAvg = pickExtreme(playedStats, "avg", "min");
+    const mostZeros = pickExtreme(playerStats, "zeros", "max");
+
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="finished-card">
+            <div className="trophy">🏆</div>
+            <h1>{winnerNames.join(" & ")} gagne !</h1>
+            <p className="subtitle">avec {winner?.score} points</p>
+            <div className="ranking">
+              {sorted.map((p, i) => {
+                const isWinner = winner?.ids.includes(p.id);
+                const isLoser = loserIds.includes(p.id);
+                return (
+                  <div
+                    key={p.id}
+                    className={"rank-row" + (isWinner ? " win" : "") + (isLoser ? " lose" : "")}
+                  >
+                    <span className="rank-pos">{i + 1}</span>
+                    <span className="rank-name">{p.name}</span>
+                    {isWinner && <span className="rank-icon gold">🏆</span>}
+                    {isLoser && <span className="rank-icon lose-badge">🥄 lanterne rouge</span>}
+                    <span className="rank-score">{p.total}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="stats-title">Statistiques de la partie</div>
+            <div className="ranking">
+              <div className="stat-row">
+                <span className="stat-label">🔥 Plus gros score en une manche</span>
+                <span className="stat-value">
+                  {bestTurn.names.length ? `${bestTurn.names.join(" & ")} — ${bestTurn.value}` : "—"}
+                </span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">📈 Meilleure moyenne</span>
+                <span className="stat-value">
+                  {bestAvg.names.length ? `${bestAvg.names.join(" & ")} — ${Math.round(bestAvg.value)}` : "—"}
+                </span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">📉 Plus faible moyenne</span>
+                <span className="stat-value">
+                  {worstAvg.names.length ? `${worstAvg.names.join(" & ")} — ${Math.round(worstAvg.value)}` : "—"}
+                </span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">💀 Plus de zéros</span>
+                <span className="stat-value">
+                  {mostZeros.names.length && mostZeros.value > 0 ? `${mostZeros.names.join(" & ")} — ${mostZeros.value}` : "—"}
+                </span>
+              </div>
+            </div>
+
+            <button className="primary-btn" onClick={goToSetupKeepConfig}>
+              🔄 Nouvelle partie
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      <div className="phone">
+        <div className="topbar">
+          <div className="topbar-left">
+            <span>🎲</span>
+            <span>Objectif {target}</span>
+          </div>
+          {!isTiebreak && <div className="topbar-right">Manche {Math.floor(turnCount / n) + 1}</div>}
+          <button className="ghost-btn" onClick={() => setConfirmReset(true)}>🔄</button>
+        </div>
+
+        {confirmReset && (
+          <div className="banner warn">
+            Recommencer ? Les scores seront perdus.
+            <span className="banner-actions">
+              <button className="mini-btn" onClick={goToSetupKeepConfig}>Oui</button>
+              <button className="mini-btn ghost" onClick={() => setConfirmReset(false)}>Annuler</button>
+            </span>
+          </div>
+        )}
+
+        {triggered && !isTiebreak && (
+          <div className="banner gold">
+            🏆 {triggerInfo.name} a atteint l'objectif ({triggerInfo.score} pts). Les autres joueurs de la manche peuvent se défendre.
+          </div>
+        )}
+
+        {isTiebreak && (
+          <div className="banner gold">
+            🛡️ Égalité ! Départage n°{tbRound} :{" "}
+            {players.filter((p) => tbPlayers.includes(p.id)).map((p) => p.name).join(", ")}
+          </div>
+        )}
+
+        <div className="player-strip">
+          {players.map((p) => {
+            const isCurrent = isTiebreak ? p.id === tbCurrentId : p.id === currentPlayer?.id;
+            const isTbPlayer = isTiebreak && tbPlayers.includes(p.id);
+            if (isTiebreak && !isTbPlayer) return null;
+            return (
+              <div key={p.id} className={"player-card" + (isCurrent ? " current" : "") + (p.boost ? " boosted" : "")}>
+                <div className="player-name">{p.name}</div>
+                <div className="player-score">{isTiebreak ? tbScores[p.id] ?? "—" : p.total}</div>
+                {!isTiebreak && <DiceTrail total={p.total} target={target} />}
+                {!isTiebreak && p.boost && <div className="boost-badge">🍆 grosse bite — x2</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="turn-card">
+          <div className="turn-head">
+            <span>Au tour de <strong>{activePlayer?.name}</strong></span>
+            {triggered && !isTiebreak && (
+              <span className="defense-badge">🛡️ défense</span>
+            )}
+          </div>
+
+          <PoolIndicator pool={pool} diceCount={diceCount} />
+          <div className="turn-score">{turnScore} pts ce tour</div>
+          {!isTiebreak && activePlayer && (() => {
+            const mult = (activePlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1);
+            return (
+              <div className="turn-potential">
+                → total potentiel : <strong>{activePlayer.total + turnScore * mult}</strong>
+                {mult > 1 && <span className="boost-tag">🍆 x{mult}</span>}
+              </div>
+            );
+          })()}
+
+          {!isTiebreak && (
+            <label className={"turn-boost-checkbox" + (turnBoost ? " active" : "")}>
+              <input
+                type="checkbox"
+                checked={turnBoost}
+                onChange={(e) => setTurnBoost(e.target.checked)}
+              />
+              🍆 Tour grosse bite (x2 sur ce tour)
+            </label>
+          )}
+
+          <ComboTable pool={pool} onAdd={addCombo} diceCount={diceCount} />
+          <TurnBreakdown adds={turnAdds} />
+
+          <div className="manual-row">
+            <input
+              type="number"
+              className="manual-points"
+              placeholder="Points"
+              value={manualInput}
+              onChange={(e) => setManualInput(e.target.value)}
+            />
+            <input
+              type="number"
+              className="manual-cost"
+              placeholder="Dés"
+              value={manualCost}
+              min={0}
+              max={pool}
+              onChange={(e) => setManualCost(e.target.value)}
+            />
+            <button className="chip manual-add" onClick={addManual}>➕</button>
+          </div>
+
+          <div className="turn-actions-secondary">
+            <button className="mini-btn ghost" onClick={undoLastAdd}>↩ Annuler</button>
+            <button className="mini-btn ghost" onClick={resetTurnState}>Réinitialiser</button>
+          </div>
+
+          {!isTiebreak && diceCount >= 5 && !confirmInstantWin && (
+            <button className="instant-win-btn" onClick={() => setConfirmInstantWin(true)}>
+              ✨ {diceCount} dés identiques — victoire immédiate
+            </button>
+          )}
+          {!isTiebreak && diceCount >= 5 && confirmInstantWin && (
+            <div className="banner warn">
+              Confirmer la victoire de {currentPlayer?.name} ?
+              <span className="banner-actions">
+                <button className="mini-btn" onClick={instantWin}>Oui</button>
+                <button className="mini-btn ghost" onClick={() => setConfirmInstantWin(false)}>Annuler</button>
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="history">
+          <div className="history-title">Historique</div>
+          <div className="history-list">
+            {[...(isTiebreak ? tbHistory : history)].reverse().map((h, i) => {
+              const realIndex = isTiebreak ? null : history.length - 1 - i;
+              const isEditing = !isTiebreak && editingIndex === realIndex;
+              return (
+                <div key={i} className="history-row">
+                  <div className="history-row-top">
+                    <span className="history-round">M{h.round}</span>
+                    <span className="history-name">{h.playerName}</span>
+                    <span className="history-points">
+                      {h.special ? h.special : h.bust ? "Perdu" : `+${h.points} pts`}
+                    </span>
+                    {h.boosted && <span className="boost-tag">🍆 x2</span>}
+                    {h.turnBoosted && <span className="boost-tag">🍆 tour x2</span>}
+                    {"total" in h && <span className="history-total">→ {h.total}</span>}
+                    {!isTiebreak && !h.special && !isEditing && (
+                      <button className="edit-btn" onClick={() => openEditEntry(realIndex)} title="Rectifier ce tour">
+                        ✏️
+                      </button>
+                    )}
+                  </div>
+                  {h.edited && !isEditing && <span className="edited-tag">rectifié</span>}
+                  {isEditing && (
+                    <div className="edit-row">
+                      <label className="edit-bust-toggle">
+                        <input
+                          type="checkbox"
+                          checked={editBust}
+                          onChange={(e) => setEditBust(e.target.checked)}
+                        />
+                        Perdu (0 pts)
+                      </label>
+                      {!editBust && (
+                        <input
+                          type="number"
+                          className="edit-points-input"
+                          value={editPoints}
+                          onChange={(e) => setEditPoints(e.target.value)}
+                        />
+                      )}
+                      <button className="mini-btn" onClick={saveEditEntry}>✔ Valider</button>
+                      <button className="mini-btn ghost" onClick={cancelEditEntry}>Annuler</button>
+                    </div>
+                  )}
+                  {h.combos && h.combos.length > 0 && (
+                    <div className="history-combos">
+                      {h.combos.map((c, ci) => (
+                        <span key={ci} className="combo-tag small">
+                          {c.label} <b>+{c.points}</b>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {(isTiebreak ? tbHistory : history).length === 0 && (
+              <div className="history-empty">Aucun tour joué.</div>
+            )}
+          </div>
+        </div>
+
+        <div className="footer-actions">
+          <button className="danger-btn" onClick={() => (isTiebreak ? tbBank(true) : bankTurn(true))}>
+            Perdu (0)
+          </button>
+          <button className="primary-btn" onClick={() => (isTiebreak ? tbBank(false) : bankTurn(false))}>
+            Valider le tour
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
