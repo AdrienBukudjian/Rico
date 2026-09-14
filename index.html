@@ -1053,8 +1053,8 @@ function App() {
 
   const currentRoundIndex = n > 0 ? Math.floor(turnCount / n) : 0;
 
-  const ROUND_EVENT_CHANCE = 0.12;
-  const TURN_EVENT_CHANCE = 0.10;
+  const ROUND_EVENT_CHANCE = 0.15;
+  const TURN_EVENT_CHANCE = 0.13;
 
   function resolveGangbangRound(targetRoundNumber) {
     const entries = history.filter((h) => h.round === targetRoundNumber && !h.special);
