@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Carnet de scores — Jeu de dés</title>
+<title>Le Rico</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#14261c" />
+
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Le Rico" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -137,9 +148,15 @@
   .history-total { margin-left:auto; color: var(--chalk-dim); }
   .edit-btn { background:none; border:none; color: var(--chalk-dim); cursor:pointer; font-size:12px; padding:0 0 0 4px; }
   .edited-tag { color: var(--chalk-dim); font-size:10.5px; font-style:italic; padding-left:30px; }
-  .edit-row { display:flex; flex-wrap:wrap; align-items:center; gap:6px; background: var(--panel-soft); border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
+  .edit-row { display:flex; flex-direction:column; gap:8px; background: var(--panel-soft); border:1px solid var(--line); border-radius:8px; padding:8px; }
   .edit-bust-toggle { display:flex; align-items:center; gap:5px; font-size:11.5px; color: var(--chalk-dim); }
-  .edit-points-input { width:80px; background: var(--panel); border:1px solid var(--line); border-radius:6px; color: var(--chalk); padding:4px 6px; font-size:12.5px; }
+  .edit-mult-note { font-size:10.5px; color:#e07a5f; }
+  .edit-combos-list { display:flex; flex-wrap:wrap; gap:4px; }
+  .combo-tag.removable { display:inline-flex; align-items:center; gap:5px; }
+  .combo-remove { background:none; border:none; color: var(--chalk-dim); cursor:pointer; font-size:10px; padding:0; line-height:1; }
+  .edit-pool-text { font-size:10.5px; color: var(--chalk-dim); }
+  .edit-manual-add { margin:0; }
+  .edit-row-actions { display:flex; gap:6px; }
   .history-combos { display:flex; flex-wrap:wrap; gap:4px; padding-left:30px; }
   .history-empty { color: var(--chalk-dim); font-size:12.5px; }
 
@@ -392,8 +409,10 @@ function App() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [winner, setWinner] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [editPoints, setEditPoints] = useState("");
+  const [editCombos, setEditCombos] = useState([]);
   const [editBust, setEditBust] = useState(false);
+  const [editManualInput, setEditManualInput] = useState("");
+  const [editManualCost, setEditManualCost] = useState("1");
   const [turnBoost, setTurnBoost] = useState(false);
 
   const [tbPlayers, setTbPlayers] = useState([]);
@@ -531,7 +550,7 @@ function App() {
         total: newTotal,
         boosted: !bust && currentPlayer.boost,
         turnBoosted: !bust && turnBoost,
-        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points })),
+        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
     ]);
     resetTurnState();
@@ -568,30 +587,61 @@ function App() {
     const entry = history[index];
     if (!entry || entry.special) return;
     setEditingIndex(index);
-    setEditPoints(String(entry.points));
     setEditBust(entry.bust);
+    setEditCombos(entry.combos ? entry.combos.map((c) => ({ ...c })) : []);
   }
 
   function cancelEditEntry() {
     setEditingIndex(null);
-    setEditPoints("");
+    setEditCombos([]);
     setEditBust(false);
+    setEditManualInput("");
+    setEditManualCost("1");
+  }
+
+  function addEditCombo(item) {
+    setEditCombos((c) => [...c, { label: item.label, points: item.points, cost: item.cost }]);
+  }
+
+  function removeEditCombo(idx) {
+    setEditCombos((c) => c.filter((_, i) => i !== idx));
+  }
+
+  function editPoolUsed() {
+    return editCombos.reduce((s, c) => s + (c.cost || 0), 0);
+  }
+
+  function addEditManual() {
+    const v = parseInt(editManualInput, 10);
+    const c = parseInt(editManualCost, 10);
+    const remaining = diceCount - editPoolUsed();
+    if (!v || v <= 0 || isNaN(c) || c < 0 || c > remaining) return;
+    setEditCombos((cs) => [...cs, { label: "Ajout libre", points: v, cost: c }]);
+    setEditManualInput("");
+    setEditManualCost("1");
   }
 
   function saveEditEntry() {
     const index = editingIndex;
     const entry = history[index];
     if (!entry) { cancelEditEntry(); return; }
-    const finalPoints = editBust ? 0 : Math.max(0, parseInt(editPoints, 10) || 0);
+    const rawPoints = editBust ? 0 : editCombos.reduce((s, c) => s + c.points, 0);
+    const multiplier = (entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1);
+    const finalPoints = editBust ? 0 : rawPoints * multiplier;
+    const finalCombos = editBust ? [] : editCombos;
     const delta = finalPoints - entry.points;
     const playerName = entry.playerName;
 
-    if (delta !== 0 || editBust !== entry.bust) {
+    if (
+      delta !== 0 ||
+      editBust !== entry.bust ||
+      JSON.stringify(finalCombos) !== JSON.stringify(entry.combos || [])
+    ) {
       setHistory((h) =>
         h.map((e, i) => {
           if (i < index || e.playerName !== playerName) return e;
           if (i === index) {
-            return { ...e, points: finalPoints, bust: editBust, total: e.total + delta, edited: true };
+            return { ...e, points: finalPoints, bust: editBust, total: e.total + delta, combos: finalCombos, edited: true };
           }
           return { ...e, total: e.total + delta };
         })
@@ -633,7 +683,7 @@ function App() {
         playerName: tbCurrentPlayer.name,
         points,
         bust,
-        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points })),
+        combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
     ]);
     resetTurnState();
@@ -667,7 +717,7 @@ function App() {
           <div className="setup-card">
             <div className="title-row">
               <span className="title-icon">🎲</span>
-              <h1>Carnet de scores</h1>
+              <h1>Le Rico</h1>
             </div>
             <p className="subtitle">Configure la partie avant de lancer les dés.</p>
 
@@ -1001,16 +1051,58 @@ function App() {
                         />
                         Perdu (0 pts)
                       </label>
+
                       {!editBust && (
-                        <input
-                          type="number"
-                          className="edit-points-input"
-                          value={editPoints}
-                          onChange={(e) => setEditPoints(e.target.value)}
-                        />
+                        <>
+                          {(h.boosted || h.turnBoosted) && (
+                            <div className="edit-mult-note">
+                              🍆 multiplicateur x{(h.boosted ? 2 : 1) * (h.turnBoosted ? 2 : 1)} conservé pour ce tour
+                            </div>
+                          )}
+
+                          {editCombos.length > 0 && (
+                            <div className="edit-combos-list">
+                              {editCombos.map((c, ci) => (
+                                <span key={ci} className="combo-tag small removable">
+                                  {c.label} <b>+{c.points}</b>
+                                  <button className="combo-remove" onClick={() => removeEditCombo(ci)}>✕</button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="edit-pool-text">
+                            {diceCount - editPoolUsed()}/{diceCount} dés disponibles pour ce tour
+                          </div>
+
+                          <ComboTable pool={diceCount - editPoolUsed()} onAdd={addEditCombo} diceCount={diceCount} />
+
+                          <div className="manual-row edit-manual-add">
+                            <input
+                              type="number"
+                              className="manual-points"
+                              placeholder="Points"
+                              value={editManualInput}
+                              onChange={(e) => setEditManualInput(e.target.value)}
+                            />
+                            <input
+                              type="number"
+                              className="manual-cost"
+                              placeholder="Dés"
+                              value={editManualCost}
+                              min={0}
+                              max={diceCount - editPoolUsed()}
+                              onChange={(e) => setEditManualCost(e.target.value)}
+                            />
+                            <button className="chip manual-add" onClick={addEditManual}>➕</button>
+                          </div>
+                        </>
                       )}
-                      <button className="mini-btn" onClick={saveEditEntry}>✔ Valider</button>
-                      <button className="mini-btn ghost" onClick={cancelEditEntry}>Annuler</button>
+
+                      <div className="edit-row-actions">
+                        <button className="mini-btn" onClick={saveEditEntry}>✔ Valider</button>
+                        <button className="mini-btn ghost" onClick={cancelEditEntry}>Annuler</button>
+                      </div>
                     </div>
                   )}
                   {h.combos && h.combos.length > 0 && (
