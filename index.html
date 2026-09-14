@@ -55,6 +55,22 @@
     60% { transform: translateX(-4px); }
     80% { transform: translateX(4px); }
   }
+  @keyframes shimmerSweep {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes glowPulseRed {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(224,122,109,0.45); }
+    50% { box-shadow: 0 0 18px 5px rgba(224,122,109,0.5); }
+  }
+  @keyframes chainSwing {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
+  }
+  @keyframes floatSparkle {
+    0%, 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.35; }
+    50% { transform: translateY(-7px) scale(1.15) rotate(12deg); opacity: 0.9; }
+  }
   html, body { height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
   .app {
     min-height: 100vh;
@@ -101,6 +117,16 @@
   .boost-lock-note { font-size:11px; color:#e07a5f; text-align:center; padding:4px 6px; }
   .boost-lock-note.general { color:#f4a300; font-weight:700; }
   .boost-lock-note.surprise { color:#f4a300; font-weight:700; background: rgba(244,163,0,0.12); border-radius:8px; animation: surpriseFlash 0.5s ease; }
+  .sadomazo-info {
+    display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600; text-align:left;
+    padding:7px 10px; margin-bottom:8px; border-radius:10px;
+    background: linear-gradient(100deg, rgba(224,122,109,0.08), rgba(224,122,109,0.22), rgba(224,122,109,0.08));
+    background-size: 220% 100%;
+    border:1px solid rgba(224,122,109,0.5);
+    color: var(--red);
+    animation: bannerPop 0.4s ease, shimmerSweep 3s linear infinite;
+  }
+  .sadomazo-chain { display:inline-block; font-size:15px; animation: chainSwing 1.4s ease-in-out infinite; transform-origin: top center; }
   .danger-btn { background: transparent; color: var(--red); border:1.5px solid var(--red); border-radius:14px; padding:14px; font-weight:600; flex:1; min-height:48px; }
 
   .topbar { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
@@ -111,7 +137,33 @@
   .banner { margin-bottom:10px; padding:10px 12px; border-radius:12px; font-size:12.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .banner.gold { background: rgba(232,196,104,0.14); border:1px solid var(--gold); }
   .banner.warn { background: rgba(224,122,109,0.14); border:1px solid var(--red); }
-  .banner.general-round { background: rgba(244,163,0,0.16); border:1px solid #f4a300; color:#f4a300; font-weight:700; justify-content:center; text-align:center; animation: bannerPop 0.45s ease, glowPulse 1.8s ease-in-out infinite; }
+  .banner.general-round {
+    position: relative; overflow: hidden;
+    background: linear-gradient(100deg, rgba(244,163,0,0.10), rgba(244,163,0,0.4), rgba(244,163,0,0.10));
+    background-size: 250% 100%;
+    border:1px solid #f4a300; color:#f4a300; font-weight:700; justify-content:center; text-align:center;
+    animation: bannerPop 0.45s ease, glowPulse 1.8s ease-in-out infinite, shimmerSweep 3.5s linear infinite;
+  }
+  .banner.general-round::before, .banner.general-round::after {
+    content: "✨"; position:absolute; font-size:13px; pointer-events:none;
+    animation: floatSparkle 2.2s ease-in-out infinite;
+  }
+  .banner.general-round::before { left:6%; top:22%; }
+  .banner.general-round::after { right:6%; top:60%; animation-delay: 1.1s; }
+
+  .banner.sadomazo-round {
+    position: relative; overflow: hidden;
+    background: linear-gradient(100deg, rgba(224,122,109,0.10), rgba(224,122,109,0.4), rgba(224,122,109,0.10));
+    background-size: 250% 100%;
+    border:1px solid var(--red); color: var(--red); font-weight:700; justify-content:center; text-align:center;
+    animation: bannerPop 0.45s ease, glowPulseRed 1.8s ease-in-out infinite, shimmerSweep 3.5s linear infinite;
+  }
+  .banner.sadomazo-round::before, .banner.sadomazo-round::after {
+    content: "⛓️"; position:absolute; font-size:13px; pointer-events:none;
+    animation: floatSparkle 2.4s ease-in-out infinite;
+  }
+  .banner.sadomazo-round::before { left:6%; top:22%; }
+  .banner.sadomazo-round::after { right:6%; top:60%; animation-delay: 1.2s; }
   .banner-actions { margin-left:auto; display:flex; gap:6px; }
   .mini-btn { background: var(--gold); color:#2a2410; border:none; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
   .mini-btn.ghost { background:transparent; border:1px solid var(--line); color: var(--chalk); }
@@ -125,7 +177,20 @@
   .boost-badge { margin-top:6px; font-size:9.5px; color:#e07a5f; font-weight:700; line-height:1.2; }
   .boost-chip.active { background: #e07a5f; border-color:#e07a5f; color:#1d130f; }
   .boost-tag { margin-left:8px; font-size:11px; color:#e07a5f; font-weight:700; }
-  .boost-tag.partouze { color:#f4a300; animation: bannerPop 0.4s ease; display:inline-block; }
+  .boost-tag.partouze {
+    display:inline-block; font-weight:700;
+    background: linear-gradient(90deg, #f4a300, #ffe1a8, #f4a300);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: bannerPop 0.4s ease, shimmerSweep 2.4s linear infinite;
+  }
+  .boost-tag.sadomazo {
+    display:inline-block; font-weight:700;
+    background: linear-gradient(90deg, var(--red), #ffcfc7, var(--red));
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: bannerPop 0.4s ease, shimmerSweep 2.4s linear infinite;
+  }
   .dice-trail { display:flex; gap:2px; margin-top:4px; font-size:12px; }
   .pip.on { color: var(--gold); }
   .pip.off { color: rgba(245,243,234,0.2); }
@@ -137,18 +202,6 @@
   .pool-indicator { display:flex; align-items:center; gap:4px; margin-bottom:8px; flex-wrap:wrap; font-size:18px; }
   .pool-die.free { color: var(--gold); }
   .pool-die.used { color: rgba(245,243,234,0.2); }
-
-  .dice-roll-toggle { width:100%; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:10px; padding:9px; font-size:12px; margin-bottom:8px; cursor:pointer; }
-  .dice-roll-toggle.active { border-color: var(--gold); color: var(--gold); }
-  .dice-tray { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; }
-  .dice-tray-grid { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:10px; }
-  .virtual-die { width:52px; height:52px; font-size:30px; background: var(--panel-soft); border:2px solid var(--line); border-radius:12px; color: var(--chalk); display:flex; align-items:center; justify-content:center; }
-  .virtual-die.selected { border-color: var(--gold); color: var(--gold); background: rgba(232,196,104,0.14); }
-  .dice-tray-empty { font-size:12px; color: var(--chalk-dim); }
-  .dice-tray-actions { display:flex; gap:8px; }
-  .dice-tray-actions .mini-btn { flex:1; text-align:center; }
-  .dice-claim-error { font-size:11.5px; color: var(--red); margin-bottom:8px; text-align:center; }
-  .dice-bust-warning { font-size:10.5px; color: var(--chalk-dim); text-align:center; margin-top:8px; }
   .pool-text { font-size:11.5px; color: var(--chalk-dim); margin-left:6px; }
 
   .turn-score { color: var(--gold); font-family:'Kalam'; font-size:16px; margin-bottom:10px; }
@@ -308,48 +361,6 @@ function getExtraCombos(diceCount) {
   return combos;
 }
 
-function scoreDiceSelection(values, diceCount) {
-  if (!values || values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-
-  for (const s of SUITES) {
-    if (s.cost !== values.length) continue;
-    const seq = s.label.split("-").map(Number);
-    if (JSON.stringify(seq) === JSON.stringify(sorted)) {
-      return { points: s.points, label: s.label, cost: s.cost };
-    }
-  }
-  for (const s of SHORT_STRAIGHTS[diceCount] || []) {
-    if (s.cost !== values.length) continue;
-    const seq = s.label.replace("Suite ", "").split("-").map(Number);
-    if (JSON.stringify(seq) === JSON.stringify(sorted)) {
-      return { points: s.points, label: s.label, cost: s.cost };
-    }
-  }
-  if (diceCount === 4 && values.length === 4) {
-    const counts = {};
-    values.forEach((v) => (counts[v] = (counts[v] || 0) + 1));
-    const pairFaces = Object.values(counts).filter((c) => c === 2);
-    if (pairFaces.length === 2) {
-      return { points: 250, label: "Deux paires", cost: 4 };
-    }
-  }
-
-  const allSame = values.every((v) => v === values[0]);
-  if (allSame) {
-    const face = values[0];
-    const count = values.length;
-    if (count === diceCount) {
-      return { instantWin: true };
-    }
-    const row = getComboRows(diceCount).find((r) => r.face === face);
-    if (row && row.tiers[count]) {
-      return { points: row.tiers[count], label: `${TIER_NAMES[count]} ${face}`, cost: count };
-    }
-  }
-  return null;
-}
-
 function DiceTrail({ total, target }) {
   const pct = target > 0 ? Math.min(1, total / target) : 0;
   const filled = Math.round(pct * 6);
@@ -492,6 +503,8 @@ function App() {
   const [partoozeIndividual, setPartoozeIndividual] = useState(false);
   const [partoozeGeneral, setPartoozeGeneral] = useState(false);
   const [duelEnabled, setDuelEnabled] = useState(false);
+  const [sadomazoIndividual, setSadomazoIndividual] = useState(false);
+  const [sadomazoGeneral, setSadomazoGeneral] = useState(false);
   const [setupError, setSetupError] = useState("");
 
   const [players, setPlayers] = useState([]);
@@ -528,13 +541,9 @@ function App() {
   const [duelTurnAdds, setDuelTurnAdds] = useState([]);
   const [duelManualInput, setDuelManualInput] = useState("");
   const [duelManualCost, setDuelManualCost] = useState("1");
-
-  const [diceRollMode, setDiceRollMode] = useState(false);
-  const [diceValues, setDiceValues] = useState([]);
-  const [diceSelected, setDiceSelected] = useState([]);
-  const [claimedThisRoll, setClaimedThisRoll] = useState(false);
-  const [claimError, setClaimError] = useState(null);
   const [generalBoostRound, setGeneralBoostRound] = useState(false);
+  const [sadomazoActive, setSadomazoActive] = useState(false);
+  const [sadomazoGeneralRound, setSadomazoGeneralRound] = useState(false);
 
   const [tbPlayers, setTbPlayers] = useState([]);
   const [tbIndex, setTbIndex] = useState(0);
@@ -607,11 +616,6 @@ function App() {
     setTurnBoost(false);
     setRevealSurprise(false);
     setButtonShake(false);
-    setDiceRollMode(false);
-    setDiceValues([]);
-    setDiceSelected([]);
-    setClaimedThisRoll(false);
-    setClaimError(null);
   }
 
   function addCombo(item) {
@@ -682,6 +686,8 @@ function App() {
         turnBoosted: !bust && turnBoost,
         partoozeBoosted: !bust && surpriseBoost,
         partoozeGeneralRound: !bust && surpriseBoost && generalBoostRound,
+        sadomazo: sadomazoActive,
+        sadomazoGeneral: sadomazoActive && sadomazoGeneralRound,
         combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
     ]);
@@ -853,6 +859,14 @@ function App() {
   }, [currentRoundIndex, phase, isTiebreak, partoozeGeneral]);
 
   useEffect(() => {
+    if (!sadomazoGeneral || phase !== "playing" || isTiebreak || generalBoostRound) {
+      setSadomazoGeneralRound(false);
+      return;
+    }
+    setSadomazoGeneralRound(Math.random() < 0.10);
+  }, [currentRoundIndex, phase, isTiebreak, sadomazoGeneral, generalBoostRound]);
+
+  useEffect(() => {
     if (phase !== "playing" || isTiebreak || !activePlayer) {
       setSurpriseBoost(false);
       return;
@@ -869,8 +883,33 @@ function App() {
   }, [activePlayer?.id, turnCount, phase, isTiebreak, partoozeIndividual, generalBoostRound]);
 
   useEffect(() => {
-    if (!duelEnabled || phase !== "playing" || isTiebreak || generalBoostRound || !activePlayer) return;
-    if (Math.random() < 0.10) {
+    if (phase !== "playing" || isTiebreak || !activePlayer) {
+      setSadomazoActive(false);
+      return;
+    }
+    if (sadomazoGeneralRound) {
+      setSadomazoActive(true);
+      return;
+    }
+    if (sadomazoIndividual && Math.random() < 0.15) {
+      setSadomazoActive(true);
+    } else {
+      setSadomazoActive(false);
+    }
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, sadomazoIndividual, sadomazoGeneralRound]);
+
+  useEffect(() => {
+    if (
+      !duelEnabled ||
+      phase !== "playing" ||
+      isTiebreak ||
+      generalBoostRound ||
+      sadomazoGeneralRound ||
+      !activePlayer ||
+      currentRoundIndex < 1
+    )
+      return;
+    if (Math.random() < 0.05) {
       setDuelChallengerId(activePlayer.id);
       setDuelOpponentId(null);
       setDuelP1Score(null);
@@ -879,76 +918,7 @@ function App() {
       setDuelStep("opponent");
       setPhase("duel");
     }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, generalBoostRound]);
-
-  function rollDie() {
-    return 1 + Math.floor(Math.random() * 6);
-  }
-
-  function toggleDiceRollMode() {
-    setDiceRollMode((m) => {
-      const next = !m;
-      if (next) {
-        setDiceValues(Array.from({ length: pool }, rollDie));
-        setDiceSelected(Array.from({ length: pool }, () => false));
-        setClaimedThisRoll(false);
-        setClaimError(null);
-      }
-      return next;
-    });
-  }
-
-  function toggleDieSelect(i) {
-    setDiceSelected((sel) => sel.map((s, idx) => (idx === i ? !s : s)));
-    setClaimError(null);
-  }
-
-  function attemptClaimSelection() {
-    const selectedIdx = diceSelected.map((s, i) => (s ? i : null)).filter((i) => i !== null);
-    if (selectedIdx.length === 0) return;
-    const selValues = selectedIdx.map((i) => diceValues[i]);
-    const result = scoreDiceSelection(selValues, diceCount);
-    if (!result) {
-      setClaimError("Sélection non reconnue — vérifie ta combinaison.");
-      return;
-    }
-    if (result.instantWin) {
-      if (!isTiebreak) setConfirmInstantWin(true);
-      return;
-    }
-    setTurnScore((s) => s + result.points);
-    setPool((p) => p - result.cost);
-    setTurnAdds((a) => [...a, { label: result.label, points: result.points, cost: result.cost }]);
-    setDiceValues((vals) => vals.filter((_, i) => !selectedIdx.includes(i)));
-    setDiceSelected((sel) => sel.filter((_, i) => !selectedIdx.includes(i)));
-    setClaimedThisRoll(true);
-    setClaimError(null);
-  }
-
-  function rerollOrBust() {
-    if (!claimedThisRoll) {
-      if (isTiebreak) {
-        tbBank(true);
-      } else {
-        bankTurn(true);
-      }
-      return;
-    }
-    setDiceValues((vals) => vals.map(() => rollDie()));
-    setDiceSelected((vals) => vals.map(() => false));
-    setClaimedThisRoll(false);
-    setClaimError(null);
-  }
-
-  useEffect(() => {
-    if (!diceRollMode) return;
-    if (diceValues.length !== pool) {
-      setDiceValues(Array.from({ length: pool }, rollDie));
-      setDiceSelected(Array.from({ length: pool }, () => false));
-      setClaimedThisRoll(false);
-      setClaimError(null);
-    }
-  }, [pool, diceRollMode]);
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, generalBoostRound, sadomazoGeneralRound, currentRoundIndex]);
 
   function attemptBank() {
     if (isTiebreak) {
@@ -1149,6 +1119,26 @@ function App() {
               <label className="checkbox-field">
                 <input type="checkbox" checked={duelEnabled} onChange={() => setDuelEnabled((m) => !m)} />
                 🍆 Qui a la plus grosse (mini-jeu duel entre 2 joueurs, en pause)
+              </label>
+            </div>
+
+            <div className="field">
+              <label>⛓️ Sadomazo</label>
+              <label className="checkbox-field">
+                <input
+                  type="checkbox"
+                  checked={sadomazoIndividual}
+                  onChange={() => setSadomazoIndividual((m) => !m)}
+                />
+                Sadomazo individuelle (~15% de chance par tour, 1 joueur en un seul lancer)
+              </label>
+              <label className="checkbox-field">
+                <input
+                  type="checkbox"
+                  checked={sadomazoGeneral}
+                  onChange={() => setSadomazoGeneral((m) => !m)}
+                />
+                Sadomazo générale (~10% de chance par manche, tout le monde en un seul lancer)
               </label>
             </div>
 
@@ -1390,6 +1380,12 @@ function App() {
           </div>
         )}
 
+        {!isTiebreak && sadomazoGeneralRound && (
+          <div className="banner sadomazo-round">
+            ⛓️ Manche Sadomazo GÉNÉRALE — chaque tour compte pour un seul lancer.
+          </div>
+        )}
+
         <div className="player-strip">
           {[...players.slice(startIndex), ...players.slice(0, startIndex)].map((p) => {
             const isCurrent = isTiebreak ? p.id === tbCurrentId : p.id === currentPlayer?.id;
@@ -1415,47 +1411,6 @@ function App() {
           </div>
 
           <PoolIndicator pool={pool} diceCount={diceCount} />
-
-          <button
-            className={"dice-roll-toggle" + (diceRollMode ? " active" : "")}
-            onClick={toggleDiceRollMode}
-          >
-            🎲 Tu n'as pas de dé ? {diceRollMode ? "— masquer" : "— lancer virtuellement"}
-          </button>
-
-          {diceRollMode && (
-            <div className="dice-tray">
-              <div className="dice-tray-grid">
-                {diceValues.map((v, i) => (
-                  <button
-                    key={i}
-                    className={"virtual-die" + (diceSelected[i] ? " selected" : "")}
-                    onClick={() => toggleDieSelect(i)}
-                    title={diceSelected[i] ? "Désélectionner" : "Sélectionner"}
-                  >
-                    {DICE_UNICODE[v - 1]}
-                  </button>
-                ))}
-                {diceValues.length === 0 && <span className="dice-tray-empty">Plus de dé à lancer.</span>}
-              </div>
-
-              {claimError && <div className="dice-claim-error">{claimError}</div>}
-
-              <div className="dice-tray-actions">
-                <button className="mini-btn" onClick={attemptClaimSelection}>
-                  🔒 Bloquer ma sélection
-                </button>
-                <button className="mini-btn ghost" onClick={rerollOrBust}>
-                  🎲 Relancer le reste
-                </button>
-              </div>
-              {!claimedThisRoll && (
-                <div className="dice-bust-warning">
-                  ⚠️ Si tu relances sans avoir bloqué au moins un dé sur ce lancer, ton score de ce tour passe à 0.
-                </div>
-              )}
-            </div>
-          )}
 
           <div className="turn-score">{turnScore} pts ce tour</div>
           {!isTiebreak && activePlayer && (() => {
@@ -1543,6 +1498,11 @@ function App() {
                       <span className="boost-tag partouze">🎊 partouze générale x2</span>
                     ) : (
                       h.partoozeBoosted && <span className="boost-tag partouze">🎉 partouze x2</span>
+                    )}
+                    {h.sadomazoGeneral ? (
+                      <span className="boost-tag sadomazo">⛓️ sadomazo générale</span>
+                    ) : (
+                      h.sadomazo && <span className="boost-tag sadomazo">⛓️ sadomazo</span>
                     )}
                     {"total" in h && <span className="history-total">→ {h.total}</span>}
                     {!isTiebreak && !h.special && !isEditing && (
@@ -1639,6 +1599,12 @@ function App() {
             {generalBoostRound
               ? `🎊 Manche Partouze GÉNÉRALE : tout le monde joue boosté x2 — il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`
               : `🍆 Tour grosse bite : il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`}
+          </div>
+        )}
+        {!isTiebreak && sadomazoActive && !sadomazoGeneralRound && (
+          <div className="sadomazo-info">
+            <span className="sadomazo-chain">⛓️</span>
+            Sadomazo : ce tour compte pour un seul lancer — mais tu peux valider quand tu veux.
           </div>
         )}
         {!isTiebreak && revealSurprise && pool > 0 && (
