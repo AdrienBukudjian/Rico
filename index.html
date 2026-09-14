@@ -63,6 +63,10 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(224,122,109,0.45); }
     50% { box-shadow: 0 0 18px 5px rgba(224,122,109,0.5); }
   }
+  @keyframes glowPulsePink {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192,79,176,0.45); }
+    50% { box-shadow: 0 0 18px 5px rgba(192,79,176,0.5); }
+  }
   @keyframes chainSwing {
     0%, 100% { transform: rotate(-8deg); }
     50% { transform: rotate(8deg); }
@@ -164,6 +168,25 @@
   }
   .banner.sadomazo-round::before { left:6%; top:22%; }
   .banner.sadomazo-round::after { right:6%; top:60%; animation-delay: 1.2s; }
+
+  .banner.gangbang-round {
+    position: relative; overflow: hidden;
+    background: linear-gradient(100deg, rgba(180,60,150,0.12), rgba(180,60,150,0.42), rgba(180,60,150,0.12));
+    background-size: 250% 100%;
+    border:1px solid #c04fb0; color:#e08fdc; font-weight:700; justify-content:center; text-align:center;
+    animation: bannerPop 0.45s ease, glowPulsePink 1.8s ease-in-out infinite, shimmerSweep 3.5s linear infinite;
+  }
+  .banner.gangbang-round::before, .banner.gangbang-round::after {
+    content: "💀"; position:absolute; font-size:13px; pointer-events:none;
+    animation: floatSparkle 2.3s ease-in-out infinite;
+  }
+  .banner.gangbang-round::before { left:6%; top:22%; }
+  .banner.gangbang-round::after { right:6%; top:60%; animation-delay: 1.15s; }
+
+  .banner.gangbang-result {
+    background: rgba(180,60,150,0.14); border:1px solid #c04fb0; color:#e08fdc; font-weight:600;
+    justify-content:center; text-align:center; animation: bannerPop 0.4s ease;
+  }
   .banner-actions { margin-left:auto; display:flex; gap:6px; }
   .mini-btn { background: var(--gold); color:#2a2410; border:none; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
   .mini-btn.ghost { background:transparent; border:1px solid var(--line); color: var(--chalk); }
@@ -505,6 +528,7 @@ function App() {
   const [duelEnabled, setDuelEnabled] = useState(false);
   const [sadomazoIndividual, setSadomazoIndividual] = useState(false);
   const [sadomazoGeneral, setSadomazoGeneral] = useState(false);
+  const [gangbangEnabled, setGangbangEnabled] = useState(false);
   const [setupError, setSetupError] = useState("");
 
   const [players, setPlayers] = useState([]);
@@ -544,6 +568,9 @@ function App() {
   const [generalBoostRound, setGeneralBoostRound] = useState(false);
   const [sadomazoActive, setSadomazoActive] = useState(false);
   const [sadomazoGeneralRound, setSadomazoGeneralRound] = useState(false);
+  const [gangbangRoundIndex, setGangbangRoundIndex] = useState(null);
+  const [gangbangResolved, setGangbangResolved] = useState(false);
+  const [gangbangResult, setGangbangResult] = useState(null);
 
   const [tbPlayers, setTbPlayers] = useState([]);
   const [tbIndex, setTbIndex] = useState(0);
@@ -866,8 +893,71 @@ function App() {
     setSadomazoGeneralRound(Math.random() < 0.10);
   }, [currentRoundIndex, phase, isTiebreak, sadomazoGeneral, generalBoostRound]);
 
+  function resolveGangbangRound(targetRoundNumber) {
+    const entries = history.filter((h) => h.round === targetRoundNumber && !h.special);
+    if (entries.length < n) return;
+    const scoresByPlayer = {};
+    entries.forEach((e) => {
+      scoresByPlayer[e.playerName] = e.points;
+    });
+    const names = Object.keys(scoresByPlayer);
+    if (names.length === 0) return;
+    const minScore = Math.min(...names.map((nm) => scoresByPlayer[nm]));
+    const loserNames = names.filter((nm) => scoresByPlayer[nm] === minScore);
+    const loserIds = players.filter((p) => loserNames.includes(p.name)).map((p) => p.id);
+    const winnerIds = players.filter((p) => !loserIds.includes(p.id)).map((p) => p.id);
+    if (loserIds.length === 0 || winnerIds.length === 0) return;
+    const penaltyPerLoser = 100 * winnerIds.length;
+    const gainPerWinner = 100 * loserIds.length;
+    setPlayers((ps) =>
+      ps.map((p) => {
+        if (loserIds.includes(p.id)) return { ...p, total: p.total - penaltyPerLoser };
+        if (winnerIds.includes(p.id)) return { ...p, total: p.total + gainPerWinner };
+        return p;
+      })
+    );
+    setGangbangResult({
+      loserNames,
+      penaltyPerLoser,
+      gainPerWinner,
+      tie: loserNames.length > 1,
+      round: targetRoundNumber,
+    });
+  }
+
   useEffect(() => {
-    if (phase !== "playing" || isTiebreak || !activePlayer) {
+    if (phase !== "playing" && phase !== "finished") return;
+    if (gangbangRoundIndex !== null && !gangbangResolved && currentRoundIndex > gangbangRoundIndex) {
+      setGangbangResolved(true);
+      resolveGangbangRound(gangbangRoundIndex + 1);
+    }
+  }, [currentRoundIndex, phase]);
+
+  useEffect(() => {
+    if (!gangbangEnabled || phase !== "playing" || isTiebreak || generalBoostRound || sadomazoGeneralRound) {
+      if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
+      return;
+    }
+    if (gangbangRoundIndex === currentRoundIndex) return;
+    if (Math.random() < 0.10) {
+      setGangbangRoundIndex(currentRoundIndex);
+      setGangbangResolved(false);
+      setGangbangResult(null);
+    } else if (gangbangRoundIndex !== null) {
+      setGangbangRoundIndex(null);
+    }
+  }, [currentRoundIndex, phase, isTiebreak, gangbangEnabled, generalBoostRound, sadomazoGeneralRound]);
+
+  useEffect(() => {
+    if (phase !== "finished") return;
+    if (gangbangRoundIndex !== null && !gangbangResolved) {
+      setGangbangResolved(true);
+      resolveGangbangRound(gangbangRoundIndex + 1);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "playing" || isTiebreak || !activePlayer || activePlayer.boost) {
       setSurpriseBoost(false);
       return;
     }
@@ -875,15 +965,19 @@ function App() {
       setSurpriseBoost(true);
       return;
     }
+    if (sadomazoGeneralRound) {
+      setSurpriseBoost(false);
+      return;
+    }
     if (partoozeIndividual && Math.random() < 0.15) {
       setSurpriseBoost(true);
     } else {
       setSurpriseBoost(false);
     }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, partoozeIndividual, generalBoostRound]);
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, partoozeIndividual, generalBoostRound, sadomazoGeneralRound]);
 
   useEffect(() => {
-    if (phase !== "playing" || isTiebreak || !activePlayer) {
+    if (phase !== "playing" || isTiebreak || !activePlayer || activePlayer.boost) {
       setSadomazoActive(false);
       return;
     }
@@ -891,24 +985,19 @@ function App() {
       setSadomazoActive(true);
       return;
     }
+    if (generalBoostRound) {
+      setSadomazoActive(false);
+      return;
+    }
     if (sadomazoIndividual && Math.random() < 0.15) {
       setSadomazoActive(true);
     } else {
       setSadomazoActive(false);
     }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, sadomazoIndividual, sadomazoGeneralRound]);
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, sadomazoIndividual, sadomazoGeneralRound, generalBoostRound]);
 
   useEffect(() => {
-    if (
-      !duelEnabled ||
-      phase !== "playing" ||
-      isTiebreak ||
-      generalBoostRound ||
-      sadomazoGeneralRound ||
-      !activePlayer ||
-      currentRoundIndex < 1
-    )
-      return;
+    if (!duelEnabled || phase !== "playing" || isTiebreak || !activePlayer || currentRoundIndex < 1) return;
     if (Math.random() < 0.05) {
       setDuelChallengerId(activePlayer.id);
       setDuelOpponentId(null);
@@ -918,7 +1007,7 @@ function App() {
       setDuelStep("opponent");
       setPhase("duel");
     }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, generalBoostRound, sadomazoGeneralRound, currentRoundIndex]);
+  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, currentRoundIndex]);
 
   function attemptBank() {
     if (isTiebreak) {
@@ -986,12 +1075,17 @@ function App() {
   }
 
   function finishDuelTurn(bust) {
-    const score = bust ? 0 : duelTurnScore;
     if (duelStep === "p1") {
+      const player = players.find((p) => p.id === duelChallengerId);
+      const mult = player?.boost || generalBoostRound ? 2 : 1;
+      const score = bust ? 0 : duelTurnScore * mult;
       setDuelP1Score(score);
       resetDuelTurnState();
       setDuelStep("p2");
     } else if (duelStep === "p2") {
+      const player = players.find((p) => p.id === duelOpponentId);
+      const mult = player?.boost || generalBoostRound ? 2 : 1;
+      const score = bust ? 0 : duelTurnScore * mult;
       resolveDuel(duelP1Score, score);
     }
   }
@@ -1096,14 +1190,14 @@ function App() {
             </div>
 
             <div className="field">
-              <label>🎉 Mode Partouze</label>
+              <label>🎉 Mode Partouze (active les features surprises)</label>
               <label className="checkbox-field">
                 <input
                   type="checkbox"
                   checked={partoozeIndividual}
                   onChange={() => setPartoozeIndividual((m) => !m)}
                 />
-                Partouze individuelle (~15% de chance par tour, 1 joueur)
+                Grosse bite surprise individuelle (~15% de chance par tour, 1 joueur)
               </label>
               <label className="checkbox-field">
                 <input
@@ -1111,7 +1205,7 @@ function App() {
                   checked={partoozeGeneral}
                   onChange={() => setPartoozeGeneral((m) => !m)}
                 />
-                Partouze générale (~10% de chance par manche, tout le monde)
+                Grosse bite surprise générale (~10% de chance par manche, tout le monde)
               </label>
             </div>
 
@@ -1139,6 +1233,13 @@ function App() {
                   onChange={() => setSadomazoGeneral((m) => !m)}
                 />
                 Sadomazo générale (~10% de chance par manche, tout le monde en un seul lancer)
+              </label>
+            </div>
+
+            <div className="field">
+              <label className="checkbox-field">
+                <input type="checkbox" checked={gangbangEnabled} onChange={() => setGangbangEnabled((m) => !m)} />
+                💀 GangBang (~10% de chance par manche — le plus petit score paie 100 pts à chacun)
               </label>
             </div>
 
@@ -1272,6 +1373,24 @@ function App() {
                     ? `Au tour de ${challenger?.name} — s'arrête quand il veut`
                     : `Au tour de ${opponent?.name} — doit dépasser ${duelP1Score} pts`}
                 </p>
+                {(duelStep === "p1" ? challenger : opponent)?.boost && (
+                  <div className="sadomazo-info">
+                    <span className="sadomazo-chain">🍆</span>
+                    Grosse bite permanente : le score de ce duel sera doublé (x2) pour {(duelStep === "p1" ? challenger : opponent)?.name}.
+                  </div>
+                )}
+                {generalBoostRound && !(duelStep === "p1" ? challenger : opponent)?.boost && (
+                  <div className="sadomazo-info">
+                    <span className="sadomazo-chain">🎊</span>
+                    Manche Grosse Bite Surprise GÉNÉRALE en cours : le score de ce duel est doublé (x2) pour {(duelStep === "p1" ? challenger : opponent)?.name}.
+                  </div>
+                )}
+                {sadomazoGeneralRound && (
+                  <div className="sadomazo-info">
+                    <span className="sadomazo-chain">⛓️</span>
+                    Manche Sadomazo GÉNÉRALE en cours (informatif, aucun impact sur ce duel).
+                  </div>
+                )}
 
                 <PoolIndicator pool={duelPool} diceCount={diceCount} />
                 <div className="turn-score">{duelTurnScore} pts ce tour</div>
@@ -1376,13 +1495,27 @@ function App() {
 
         {!isTiebreak && generalBoostRound && (
           <div className="banner general-round">
-            🎊 Manche Partouze GÉNÉRALE — tous les joueurs sont boostés x2 ce tour !
+            🎊 Manche Grosse Bite Surprise GÉNÉRALE — tous les joueurs sont boostés x2 ce tour !
           </div>
         )}
 
         {!isTiebreak && sadomazoGeneralRound && (
           <div className="banner sadomazo-round">
             ⛓️ Manche Sadomazo GÉNÉRALE — chaque tour compte pour un seul lancer.
+          </div>
+        )}
+
+        {!isTiebreak && gangbangRoundIndex === currentRoundIndex && (
+          <div className="banner gangbang-round">
+            💀 Manche GangBang — le plus petit score de la manche paiera 100 pts à chaque joueur !
+          </div>
+        )}
+
+        {!isTiebreak && gangbangResult && gangbangResult.round === currentRoundIndex && (
+          <div className="banner gangbang-result">
+            {gangbangResult.tie
+              ? `💀 GangBang : égalité sur le plus petit score entre ${gangbangResult.loserNames.join(", ")} — chacun paie ${gangbangResult.penaltyPerLoser} pts (100 pts à chaque autre joueur) !`
+              : `💀 GangBang : ${gangbangResult.loserNames[0]} avait le plus petit score de la manche précédente et perd ${gangbangResult.penaltyPerLoser} pts (100 par joueur) !`}
           </div>
         )}
 
@@ -1495,9 +1628,9 @@ function App() {
                     {h.boosted && <span className="boost-tag">🍆 x2</span>}
                     {h.turnBoosted && <span className="boost-tag">🍆 tour x2</span>}
                     {h.partoozeGeneralRound ? (
-                      <span className="boost-tag partouze">🎊 partouze générale x2</span>
+                      <span className="boost-tag partouze">🎊 grosse bite surprise générale x2</span>
                     ) : (
-                      h.partoozeBoosted && <span className="boost-tag partouze">🎉 partouze x2</span>
+                      h.partoozeBoosted && <span className="boost-tag partouze">🎉 grosse bite surprise x2</span>
                     )}
                     {h.sadomazoGeneral ? (
                       <span className="boost-tag sadomazo">⛓️ sadomazo générale</span>
@@ -1597,7 +1730,7 @@ function App() {
         {activePlayer && (activePlayer.boost || turnBoost || generalBoostRound) && pool > 0 && (
           <div className={"boost-lock-note" + (generalBoostRound ? " general" : "")}>
             {generalBoostRound
-              ? `🎊 Manche Partouze GÉNÉRALE : tout le monde joue boosté x2 — il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`
+              ? `🎊 Manche Grosse Bite Surprise GÉNÉRALE : tout le monde joue boosté x2 — il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`
               : `🍆 Tour grosse bite : il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`}
           </div>
         )}
@@ -1609,7 +1742,7 @@ function App() {
         )}
         {!isTiebreak && revealSurprise && pool > 0 && (
           <div className="boost-lock-note surprise">
-            😲 Surprise ! Tour grosse bite Mode Partouze révélé — il faut jouer les {diceCount} dés avant de valider ({pool} restant{pool > 1 ? "s" : ""})
+            😲 Surprise ! Grosse bite surprise individuelle révélée — il faut jouer les {diceCount} dés avant de valider ({pool} restant{pool > 1 ? "s" : ""})
           </div>
         )}
 
