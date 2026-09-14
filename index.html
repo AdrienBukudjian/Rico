@@ -20,7 +20,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Inter:wght@400;500;600;700;800&display=swap');
-  html, body { margin:0; padding:0; background:#0a0510; }
+  html, body { margin:0; padding:0; background:#0a0510; font-family: 'Inter', sans-serif; color: #fbe9f6; }
   :root {
     --bg: #0a0510;
     --panel: rgba(32,14,42,0.78);
@@ -1053,39 +1053,8 @@ function App() {
 
   const currentRoundIndex = n > 0 ? Math.floor(turnCount / n) : 0;
 
-  useEffect(() => {
-    if (!partoozeGeneral || phase !== "playing" || isTiebreak) {
-      setGeneralBoostRoundSync(false);
-      return;
-    }
-    const active = Math.random() < 0.10;
-    setGeneralBoostRoundSync(active);
-    if (active) {
-      showPopup(
-        "gold",
-        "🎊",
-        "GROSSE BITE SURPRISE GÉNÉRALE !",
-        "Cette manche, tous les joueurs jouent avec un score doublé (x2). Règle : il faut jouer la totalité de ses dés pour pouvoir valider son tour."
-      );
-    }
-  }, [currentRoundIndex, phase, isTiebreak, partoozeGeneral]);
-
-  useEffect(() => {
-    if (!sadomazoGeneral || phase !== "playing" || isTiebreak || generalBoostRoundRef.current) {
-      setSadomazoGeneralRoundSync(false);
-      return;
-    }
-    const active = Math.random() < 0.10;
-    setSadomazoGeneralRoundSync(active);
-    if (active) {
-      showPopup(
-        "red",
-        "⛓️",
-        "SADOMAZO GÉNÉRALE !",
-        "Cette manche, chaque joueur ne fait qu'un seul lancer de tous ses dés (pas de mise de côté ni de relance). Il prend les combinaisons présentes sur ce lancer — plusieurs combinaisons possibles en même temps. Si rien ne score, le tour vaut 0."
-      );
-    }
-  }, [currentRoundIndex, phase, isTiebreak, sadomazoGeneral, generalBoostRound]);
+  const ROUND_EVENT_CHANCE = 0.12;
+  const TURN_EVENT_CHANCE = 0.10;
 
   function resolveGangbangRound(targetRoundNumber) {
     const entries = history.filter((h) => h.round === targetRoundNumber && !h.special);
@@ -1157,90 +1126,106 @@ function App() {
     }
   }, [currentRoundIndex, phase]);
 
+  // Round-level pool: at most one of these three can be active per round, and
+  // the overall chance that ANY of them fires stays fixed regardless of how
+  // many are enabled — enabling more options splits the same pie, it doesn't
+  // add up on top of it.
   useEffect(() => {
-    if (
-      !gangbangEnabled ||
-      phase !== "playing" ||
-      isTiebreak ||
-      generalBoostRoundRef.current ||
-      sadomazoGeneralRoundRef.current
-    ) {
+    if (phase !== "playing" || isTiebreak) {
+      setGeneralBoostRoundSync(false);
+      setSadomazoGeneralRoundSync(false);
       if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
       return;
     }
-    if (gangbangRoundIndex === currentRoundIndex) return;
-    if (Math.random() < 0.10) {
+    const pool = [];
+    if (partoozeGeneral) pool.push("general");
+    if (sadomazoGeneral) pool.push("sadomazoGeneral");
+    if (gangbangEnabled) pool.push("gangbang");
+
+    if (pool.length === 0 || Math.random() >= ROUND_EVENT_CHANCE) {
+      setGeneralBoostRoundSync(false);
+      setSadomazoGeneralRoundSync(false);
+      if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
+      return;
+    }
+
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    setGeneralBoostRoundSync(picked === "general");
+    setSadomazoGeneralRoundSync(picked === "sadomazoGeneral");
+    if (picked === "gangbang") {
       setGangbangRoundIndex(currentRoundIndex);
       setGangbangResolved(false);
       setGangbangResult(null);
+    } else if (gangbangRoundIndex !== null) {
+      setGangbangRoundIndex(null);
+    }
+
+    if (picked === "general") {
+      showPopup(
+        "gold",
+        "🎊",
+        "GROSSE BITE SURPRISE GÉNÉRALE !",
+        "Cette manche, tous les joueurs jouent avec un score doublé (x2). Règle : il faut jouer la totalité de ses dés pour pouvoir valider son tour."
+      );
+    } else if (picked === "sadomazoGeneral") {
+      showPopup(
+        "red",
+        "⛓️",
+        "SADOMAZO GÉNÉRALE !",
+        "Cette manche, chaque joueur ne fait qu'un seul lancer de tous ses dés (pas de mise de côté ni de relance). Il prend les combinaisons présentes sur ce lancer — plusieurs combinaisons possibles en même temps. Si rien ne score, le tour vaut 0."
+      );
+    } else {
       showPopup(
         "purple",
         "💀",
         "MANCHE GANGBANG !",
         "Chacun joue son tour normalement. À la fin de la manche, le(s) plus petit(s) score(s) paiera(ont) 100 pts à chaque autre joueur."
       );
-    } else if (gangbangRoundIndex !== null) {
-      setGangbangRoundIndex(null);
     }
-  }, [currentRoundIndex, phase, isTiebreak, gangbangEnabled, generalBoostRound, sadomazoGeneralRound]);
+  }, [currentRoundIndex, phase, isTiebreak, partoozeGeneral, sadomazoGeneral, gangbangEnabled]);
 
-  useEffect(() => {
-    if (phase !== "finished") return;
-    if (gangbangRoundIndex !== null && !gangbangResolved) {
-      setGangbangResolved(true);
-      resolveGangbangRound(gangbangRoundIndex + 1);
-    }
-  }, [phase]);
-
+  // Turn-level pool: same idea — at most one of these three per turn, overall
+  // chance stays fixed, enabling more options only splits who gets picked.
   useEffect(() => {
     if (phase !== "playing" || isTiebreak || !activePlayer || activePlayer.boost) {
       setSurpriseBoost(false);
+      setSadomazoActive(false);
       return;
     }
     if (generalBoostRoundRef.current) {
       setSurpriseBoost(true);
+      setSadomazoActive(false);
       return;
     }
     if (sadomazoGeneralRoundRef.current) {
       setSurpriseBoost(false);
+      setSadomazoActive(true);
       return;
     }
-    if (partoozeIndividual && Math.random() < 0.15) {
-      setSurpriseBoost(true);
-    } else {
-      setSurpriseBoost(false);
-    }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, partoozeIndividual, generalBoostRound, sadomazoGeneralRound]);
 
-  useEffect(() => {
-    if (phase !== "playing" || isTiebreak || !activePlayer || activePlayer.boost) {
+    const pool = [];
+    if (partoozeIndividual) pool.push("grosseBite");
+    if (sadomazoIndividual) pool.push("sadomazo");
+    if (duelEnabled && currentRoundIndex >= 1) pool.push("duel");
+
+    if (pool.length === 0 || Math.random() >= TURN_EVENT_CHANCE) {
+      setSurpriseBoost(false);
       setSadomazoActive(false);
       return;
     }
-    if (sadomazoGeneralRoundRef.current) {
-      setSadomazoActive(true);
-      return;
-    }
-    if (generalBoostRoundRef.current) {
-      setSadomazoActive(false);
-      return;
-    }
-    if (sadomazoIndividual && Math.random() < 0.15) {
-      setSadomazoActive(true);
+
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    setSurpriseBoost(picked === "grosseBite");
+    setSadomazoActive(picked === "sadomazo");
+
+    if (picked === "sadomazo") {
       showPopup(
         "red",
         "⛓️",
         "SADOMAZO !",
         `${activePlayer.name} ne fait qu'un seul lancer de tous ses dés ce tour (pas de mise de côté ni de relance) et prend les combinaisons présentes sur ce lancer — plusieurs combinaisons possibles en même temps. Si rien ne score, le tour vaut 0.`
       );
-    } else {
-      setSadomazoActive(false);
-    }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, sadomazoIndividual, sadomazoGeneralRound, generalBoostRound]);
-
-  useEffect(() => {
-    if (!duelEnabled || phase !== "playing" || isTiebreak || !activePlayer || currentRoundIndex < 1) return;
-    if (Math.random() < 0.05) {
+    } else if (picked === "duel") {
       setDuelChallengerId(activePlayer.id);
       setDuelOpponentId(null);
       setDuelP1Score(null);
@@ -1255,7 +1240,27 @@ function App() {
         `${activePlayer.name} est désigné et choisit son adversaire. Règle : le premier joue et s'arrête quand il veut, le second doit faire mieux — celui qui perd donne l'écart de points à l'autre sur son score principal.`
       );
     }
-  }, [activePlayer?.id, turnCount, phase, isTiebreak, duelEnabled, currentRoundIndex]);
+    // "grosseBite" stays hidden — its popup fires later, at reveal time in attemptBank.
+  }, [
+    activePlayer?.id,
+    turnCount,
+    phase,
+    isTiebreak,
+    partoozeIndividual,
+    sadomazoIndividual,
+    duelEnabled,
+    currentRoundIndex,
+    generalBoostRound,
+    sadomazoGeneralRound,
+  ]);
+
+  useEffect(() => {
+    if (phase !== "finished") return;
+    if (gangbangRoundIndex !== null && !gangbangResolved) {
+      setGangbangResolved(true);
+      resolveGangbangRound(gangbangRoundIndex + 1);
+    }
+  }, [phase]);
 
   function attemptBank() {
     if (isTiebreak) {
@@ -1487,7 +1492,7 @@ function App() {
             </div>
 
             <div className="features-panel">
-              <div className="features-panel-title">🎲 Features spéciales</div>
+              <div className="features-panel-title">🎲 Mode Partouze</div>
 
               <div className="field">
                 <label>🎉 Mode Partouze</label>
