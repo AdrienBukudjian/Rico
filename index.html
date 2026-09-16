@@ -163,6 +163,48 @@
     text-shadow: 0 0 8px rgba(255,45,149,0.5);
   }
   .features-panel .field:last-child { margin-bottom: 12px; }
+  .features-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .features-panel-head .features-panel-title { margin-bottom:0; }
+  .features-bulk { display:flex; gap:6px; }
+  .bulk-btn { background: var(--gold); color:#2a0a1c; border:none; border-radius:999px; padding:4px 10px; font-size:10.5px; font-weight:700; cursor:pointer; }
+  .bulk-btn.ghost { background: transparent; border:1px solid var(--line); color: var(--chalk-dim); }
+
+  .pick-list { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .pick-row {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: var(--panel-soft); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; width:100%; cursor:pointer; min-height:48px;
+  }
+  .pick-name { font-size:14px; color: var(--chalk); font-weight:600; }
+  .pick-score { font-family:'Righteous'; font-size:15px; color: var(--gold); }
+  .pick-self { font-size:12px; color: var(--chalk-dim); text-align:center; margin:0 0 14px; }
+  .pick-self b { color: var(--gold); font-family:'Righteous'; font-size:14px; }
+  .anulingus-refuse { width:100%; }
+
+  .edit-modal-overlay {
+    position: fixed; inset: 0; z-index: 900;
+    background: rgba(4,1,8,0.82);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:16px;
+    animation: popupOverlayFade 0.2s ease;
+  }
+  .edit-modal {
+    width:100%; max-width:420px; max-height:88vh; display:flex; flex-direction:column;
+    background: linear-gradient(160deg, rgba(30,11,38,0.98), rgba(17,7,23,0.99));
+    border:1px solid var(--line); border-radius:18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6), 0 0 30px rgba(255,45,149,0.15);
+    animation: popupCardIn 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .edit-modal-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .edit-modal-title { flex:1; font-family:'Righteous'; font-size:14px; color: var(--gold); }
+  .edit-modal-close { background:none; border:none; color: var(--chalk-dim); font-size:16px; cursor:pointer; padding:4px 6px; }
+  .edit-modal-body { padding:14px 16px; overflow-y:auto; flex:1; }
+  .edit-modal-hint { font-size:11.5px; color: var(--chalk-dim); line-height:1.5; margin:0 0 10px; }
+  .edit-modal-actions { display:flex; gap:10px; padding:12px 16px; border-top:1px solid var(--line); }
+  .adjust-list { display:flex; flex-direction:column; gap:8px; }
+  .adjust-row { display:flex; align-items:center; gap:10px; }
+  .adjust-name { flex:1; font-size:13px; color: var(--chalk); }
+  .adjust-input { width:110px !important; text-align:center; }
 
   .stepper { display:flex; align-items:center; gap:14px; }
   .stepper button { background: var(--panel-soft); color: var(--chalk); border:1px solid var(--line); width:38px; height:38px; border-radius:10px; font-size:18px; }
@@ -707,6 +749,9 @@ function App() {
   const [sadomazoIndividual, setSadomazoIndividual] = useState(false);
   const [sadomazoGeneral, setSadomazoGeneral] = useState(false);
   const [gangbangEnabled, setGangbangEnabled] = useState(false);
+  const [tournanteEnabled, setTournanteEnabled] = useState(false);
+  const [anulingusEnabled, setAnulingusEnabled] = useState(false);
+  const [petiteBiteEnabled, setPetiteBiteEnabled] = useState(false);
   const [customChanceEnabled, setCustomChanceEnabled] = useState(false);
   const [customRoundChance, setCustomRoundChance] = useState(15);
   const [customTurnChance, setCustomTurnChance] = useState(13);
@@ -731,6 +776,7 @@ function App() {
   const [editBust, setEditBust] = useState(false);
   const [editManualInput, setEditManualInput] = useState("");
   const [editManualCost, setEditManualCost] = useState("1");
+  const [editAdjustments, setEditAdjustments] = useState([]);
   const [turnBoost, setTurnBoost] = useState(false);
   const [surpriseBoost, setSurpriseBoost] = useState(false);
   const [revealSurprise, setRevealSurprise] = useState(false);
@@ -755,6 +801,14 @@ function App() {
   const [popupQueue, setPopupQueue] = useState([]);
   const activePopup = popupQueue[0] || null;
 
+  // Deferred round events: decided at round start, revealed/applied at round end
+  const [tournanteRoundIndex, setTournanteRoundIndex] = useState(null);
+  const [tournanteResolved, setTournanteResolved] = useState(false);
+  const [anulingusRoundIndex, setAnulingusRoundIndex] = useState(null);
+  const [anulingusResolved, setAnulingusResolved] = useState(false);
+  const [anulingusChooserId, setAnulingusChooserId] = useState(null);
+  const [petiteBite, setPetiteBite] = useState(false);
+
   // Synchronous refs: multiple effects can fire in the same commit (e.g. when a
   // new round starts). React state set in one effect isn't visible to another
   // effect in that same commit, so round-exclusivity checks read these refs
@@ -763,6 +817,40 @@ function App() {
   const sadomazoGeneralRoundRef = useRef(false);
   const lastDecidedRoundRef = useRef(-1);
   const lastDecidedTurnRef = useRef(-1);
+  // Set synchronously when an end-of-round resolution takes over the screen
+  // (Anulingus). Effects declared after the resolution effect run in the SAME
+  // commit and can't see the new phase yet, so they read this instead — without
+  // it, a Duel rolled for the next turn would setPhase("duel") right on top of
+  // the Anulingus screen and one of the two would vanish.
+  const roundEndTakeoverRef = useRef(false);
+
+  // Adaptive weights: an event that just fired becomes less likely next time,
+  // and one that keeps missing out becomes more likely, so the same event
+  // doesn't monopolise the game. Weight 1 = neutral.
+  const roundWeightsRef = useRef({});
+  const turnWeightsRef = useRef({});
+
+  function weightedPick(pool, weightsRef, adaptiveKeys) {
+    const isAdaptive = (k) => !adaptiveKeys || adaptiveKeys.includes(k);
+    const weights = pool.map((k) => (isAdaptive(k) ? weightsRef.current[k] ?? 1 : 1));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let picked = pool[pool.length - 1];
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i];
+      if (r <= 0) {
+        picked = pool[i];
+        break;
+      }
+    }
+    pool.forEach((k) => {
+      if (!isAdaptive(k)) return;
+      const cur = weightsRef.current[k] ?? 1;
+      weightsRef.current[k] =
+        k === picked ? Math.max(0.35, cur * 0.45) : Math.min(2.5, cur * 1.35);
+    });
+    return picked;
+  }
 
   function setGeneralBoostRoundSync(v) {
     generalBoostRoundRef.current = v;
@@ -806,6 +894,18 @@ function App() {
     setDiceCount((d) => Math.min(6, Math.max(5, d + delta)));
   }
 
+  function setAllPartouze(value) {
+    setPartoozeIndividual(value);
+    setPartoozeGeneral(value);
+    setSadomazoIndividual(value);
+    setSadomazoGeneral(value);
+    setPetiteBiteEnabled(value);
+    setDuelEnabled(value);
+    setGangbangEnabled(value);
+    setTournanteEnabled(value);
+    setAnulingusEnabled(value);
+  }
+
   function updateRoundChance(delta) {
     setCustomRoundChance((v) => Math.min(75, Math.max(0, v + delta)));
   }
@@ -835,6 +935,11 @@ function App() {
     setTriggerInfo(null);
     setConfirmInstantWin(false);
     setWinner(null);
+    roundWeightsRef.current = {};
+    turnWeightsRef.current = {};
+    lastDecidedRoundRef.current = -1;
+    lastDecidedTurnRef.current = -1;
+    roundEndTakeoverRef.current = false;
     setPhase("playing");
   }
 
@@ -852,6 +957,7 @@ function App() {
     setTurnBoost(false);
     setRevealSurprise(false);
     setButtonShake(false);
+    setPetiteBite(false);
   }
 
   function addCombo(item) {
@@ -901,10 +1007,16 @@ function App() {
   function bankTurn(bust) {
     if (!currentPlayer) return;
     const base = bust ? 0 : turnScore;
+    // Any form of Grosse Bite (permanent, the in-game checkbox, the individual
+    // surprise, or a general round) cancels a Petite Bite that was rolled for
+    // this turn — the two can never stack.
+    const anyGrosseBite = currentPlayer.boost || turnBoost || surpriseBoost || generalBoostRound;
     const multiplier = !bust
       ? (currentPlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1) * (surpriseBoost ? 2 : 1)
       : 1;
-    const points = base * multiplier;
+    const boosted = base * multiplier;
+    const halved = !bust && petiteBite && !anyGrosseBite;
+    const points = halved ? Math.floor(boosted / 2) : boosted;
     const newTotal = currentPlayer.total + points;
     const updated = players.map((p) =>
       p.id === currentPlayer.id ? { ...p, total: newTotal } : p
@@ -924,9 +1036,18 @@ function App() {
         partoozeGeneralRound: !bust && surpriseBoost && generalBoostRound,
         sadomazo: sadomazoActive,
         sadomazoGeneral: sadomazoActive && sadomazoGeneralRound,
+        petiteBite: halved,
         combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
     ]);
+    if (halved) {
+      showPopup(
+        "red",
+        "🤏",
+        "PETITE BITE SURPRISE !",
+        `Dommage ${currentPlayer.name} — ton score de ce tour était secrètement divisé par 2 : ${boosted} pts deviennent ${points} pts.`
+      );
+    }
     resetTurnState();
 
     if (!triggered && newTotal >= target) {
@@ -959,10 +1080,13 @@ function App() {
 
   function openEditEntry(index) {
     const entry = history[index];
-    if (!entry || entry.special) return;
+    if (!entry) return;
     setEditingIndex(index);
     setEditBust(entry.bust);
     setEditCombos(entry.combos ? entry.combos.map((c) => ({ ...c })) : []);
+    setEditAdjustments(
+      players.map((p) => ({ id: p.id, name: p.name, delta: "" }))
+    );
   }
 
   function cancelEditEntry() {
@@ -971,6 +1095,57 @@ function App() {
     setEditBust(false);
     setEditManualInput("");
     setEditManualCost("1");
+    setEditAdjustments([]);
+  }
+
+  function setEditAdjustment(id, value) {
+    setEditAdjustments((list) =>
+      list.map((a) => (a.id === id ? { ...a, delta: value } : a))
+    );
+  }
+
+  // For event rows (GangBang, Duel, Anulingus, Tournante…) there are no combos
+  // to re-declare — the fix is a direct correction of each player's total.
+  function saveEventAdjustments() {
+    const entry = history[editingIndex];
+    if (!entry) {
+      cancelEditEntry();
+      return;
+    }
+    const applied = editAdjustments
+      .map((a) => ({ ...a, n: parseInt(a.delta, 10) }))
+      .filter((a) => !isNaN(a.n) && a.n !== 0);
+
+    if (applied.length === 0) {
+      cancelEditEntry();
+      return;
+    }
+
+    setPlayers((ps) =>
+      ps.map((p) => {
+        const adj = applied.find((a) => a.id === p.id);
+        return adj ? { ...p, total: p.total + adj.n } : p;
+      })
+    );
+
+    const summary = applied
+      .map((a) => `${a.name} ${a.n > 0 ? "+" : ""}${a.n}`)
+      .join(", ");
+
+    setHistory((h) =>
+      h.map((e, i) => (i === editingIndex ? { ...e, edited: true } : e))
+    );
+    setHistory((h) => [
+      ...h,
+      {
+        round: entry.round,
+        playerName: "Correction",
+        points: 0,
+        bust: false,
+        special: `✏️ Rectification — ${summary}`,
+      },
+    ]);
+    cancelEditEntry();
   }
 
   function addEditCombo(item) {
@@ -1000,8 +1175,14 @@ function App() {
     const entry = history[index];
     if (!entry) { cancelEditEntry(); return; }
     const rawPoints = editBust ? 0 : editCombos.reduce((s, c) => s + c.points, 0);
-    const multiplier = (entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1);
-    const finalPoints = editBust ? 0 : rawPoints * multiplier;
+    const multiplier =
+      (entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1) * (entry.partoozeBoosted ? 2 : 1);
+    const boostedPoints = rawPoints * multiplier;
+    const finalPoints = editBust
+      ? 0
+      : entry.petiteBite
+      ? Math.floor(boostedPoints / 2)
+      : boostedPoints;
     const finalCombos = editBust ? [] : editCombos;
     const delta = finalPoints - entry.points;
     const playerName = entry.playerName;
@@ -1155,11 +1336,80 @@ function App() {
     }
   }
 
+  function resolveTournanteRound(targetRoundNumber) {
+    const entries = history.filter((h) => h.round === targetRoundNumber && !h.special);
+    if (entries.length < n) return;
+    const scoreByName = {};
+    entries.forEach((e) => {
+      scoreByName[e.name || e.playerName] = e.points;
+    });
+
+    // Rotate: each player gives their round score to their left neighbour, i.e.
+    // player i ends up keeping the score that player i-1 earned this round.
+    const order = [...players.slice(startIndex), ...players.slice(0, startIndex)];
+    const deltas = {};
+    order.forEach((p, i) => {
+      const giver = order[(i - 1 + order.length) % order.length];
+      const own = scoreByName[p.name] ?? 0;
+      const received = scoreByName[giver.name] ?? 0;
+      deltas[p.id] = received - own;
+    });
+
+    setPlayers((ps) => ps.map((p) => ({ ...p, total: p.total + (deltas[p.id] || 0) })));
+
+    const summary = order
+      .map((p, i) => {
+        const receiver = order[(i + 1) % order.length];
+        return `${p.name} → ${receiver.name} (${scoreByName[p.name] ?? 0} pts)`;
+      })
+      .join(" · ");
+
+    setHistory((h) => [
+      ...h,
+      {
+        round: targetRoundNumber,
+        playerName: "Tous",
+        points: 0,
+        bust: false,
+        eventKind: "tournante",
+        eventRound: targetRoundNumber,
+        special: `🔄 Tout le Monde S'encule ! — les scores de la manche ont tourné : ${summary}`,
+      },
+    ]);
+
+    showPopup(
+      "purple",
+      "🔄",
+      "TOUT LE MONDE S'ENCULE !",
+      `Surprise en fin de manche : chaque joueur donne son score de cette manche à son voisin de gauche. ${summary}`
+    );
+  }
+
   useEffect(() => {
     if (phase !== "playing" && phase !== "finished") return;
     if (gangbangRoundIndex !== null && !gangbangResolved && currentRoundIndex > gangbangRoundIndex) {
       setGangbangResolved(true);
       resolveGangbangRound(gangbangRoundIndex + 1);
+    }
+    if (tournanteRoundIndex !== null && !tournanteResolved && currentRoundIndex > tournanteRoundIndex) {
+      setTournanteResolved(true);
+      resolveTournanteRound(tournanteRoundIndex + 1);
+    }
+    if (anulingusRoundIndex !== null && !anulingusResolved && currentRoundIndex > anulingusRoundIndex) {
+      setAnulingusResolved(true);
+      const order = [...players.slice(startIndex), ...players.slice(0, startIndex)];
+      const chooser = order[Math.floor(Math.random() * order.length)];
+      if (chooser) {
+        setAnulingusChooserId(chooser.id);
+        roundEndTakeoverRef.current = true;
+        setPhase("anulingus");
+        showPopup(
+          "purple",
+          "👅",
+          "ANULINGUS !",
+          `${chooser.name} est désigné en fin de manche : il peut échanger son score total avec le joueur de son choix… ou refuser.`
+        );
+      }
     }
   }, [currentRoundIndex, phase]);
 
@@ -1182,15 +1432,24 @@ function App() {
     if (partoozeGeneral) pool.push("general");
     if (sadomazoGeneral) pool.push("sadomazoGeneral");
     if (gangbangEnabled) pool.push("gangbang");
+    if (tournanteEnabled) pool.push("tournante");
+    if (anulingusEnabled) pool.push("anulingus");
+
+    const clearDeferred = () => {
+      if (tournanteRoundIndex !== currentRoundIndex) setTournanteRoundIndex(null);
+      if (anulingusRoundIndex !== currentRoundIndex) setAnulingusRoundIndex(null);
+    };
 
     if (pool.length === 0 || Math.random() >= ROUND_EVENT_CHANCE) {
       setGeneralBoostRoundSync(false);
       setSadomazoGeneralRoundSync(false);
       if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
+      clearDeferred();
       return;
     }
 
-    const picked = pool[Math.floor(Math.random() * pool.length)];
+    // All round events are adaptive: whichever fires gets damped, the others rise.
+    const picked = weightedPick(pool, roundWeightsRef);
     setGeneralBoostRoundSync(picked === "general");
     setSadomazoGeneralRoundSync(picked === "sadomazoGeneral");
     if (picked === "gangbang") {
@@ -1200,6 +1459,23 @@ function App() {
     } else if (gangbangRoundIndex !== null) {
       setGangbangRoundIndex(null);
     }
+
+    // These two are decided now but stay completely silent until the round ends,
+    // so they can't influence how anyone plays their turn.
+    if (picked === "tournante") {
+      setTournanteRoundIndex(currentRoundIndex);
+      setTournanteResolved(false);
+    } else if (tournanteRoundIndex !== currentRoundIndex) {
+      setTournanteRoundIndex(null);
+    }
+    if (picked === "anulingus") {
+      setAnulingusRoundIndex(currentRoundIndex);
+      setAnulingusResolved(false);
+    } else if (anulingusRoundIndex !== currentRoundIndex) {
+      setAnulingusRoundIndex(null);
+    }
+
+    if (picked === "tournante" || picked === "anulingus") return;
 
     if (picked === "general") {
       showPopup(
@@ -1223,7 +1499,16 @@ function App() {
         "Chacun joue son tour normalement. À la fin de la manche, le(s) plus petit(s) score(s) paiera(ont) 100 pts à chaque autre joueur."
       );
     }
-  }, [currentRoundIndex, phase, isTiebreak, partoozeGeneral, sadomazoGeneral, gangbangEnabled]);
+  }, [
+    currentRoundIndex,
+    phase,
+    isTiebreak,
+    partoozeGeneral,
+    sadomazoGeneral,
+    gangbangEnabled,
+    tournanteEnabled,
+    anulingusEnabled,
+  ]);
 
   // Turn-level pool: same idea — at most one of these three per turn, overall
   // chance stays fixed, enabling more options only splits who gets picked.
@@ -1234,39 +1519,50 @@ function App() {
       return;
     }
     if ((phase !== "playing" && phase !== "duel") || !activePlayer) return;
+    // An end-of-round resolution (Anulingus) is claiming the screen in this same
+    // commit. Don't decide this turn's event yet and don't consume the slot —
+    // this effect re-runs once the phase returns to "playing".
+    if (roundEndTakeoverRef.current) return;
     if (lastDecidedTurnRef.current === turnCount) return;
     lastDecidedTurnRef.current = turnCount;
 
-    if (activePlayer.boost) {
-      setSurpriseBoost(false);
-      setSadomazoActive(false);
-      return;
-    }
+    // A permanent Grosse Bite player is immune to Sadomazo and Petite Bite, and
+    // a Grosse Bite surprise would be redundant (he's already x2) — but he stays
+    // fully eligible for the Duel.
+    const immune = activePlayer.boost;
+
     if (generalBoostRoundRef.current) {
-      setSurpriseBoost(true);
+      setSurpriseBoost(!immune);
       setSadomazoActive(false);
+      setPetiteBite(false);
       return;
     }
     if (sadomazoGeneralRoundRef.current) {
       setSurpriseBoost(false);
-      setSadomazoActive(true);
+      setSadomazoActive(!immune);
+      setPetiteBite(false);
       return;
     }
 
     const pool = [];
-    if (partoozeIndividual) pool.push("grosseBite");
-    if (sadomazoIndividual) pool.push("sadomazo");
+    if (partoozeIndividual && !immune) pool.push("grosseBite");
+    if (sadomazoIndividual && !immune) pool.push("sadomazo");
+    if (petiteBiteEnabled && !immune) pool.push("petiteBite");
     if (duelEnabled && currentRoundIndex >= 1) pool.push("duel");
 
     if (pool.length === 0 || Math.random() >= TURN_EVENT_CHANCE) {
       setSurpriseBoost(false);
       setSadomazoActive(false);
+      setPetiteBite(false);
       return;
     }
 
-    const picked = pool[Math.floor(Math.random() * pool.length)];
+    // Only the duel adapts here — Grosse Bite / Sadomazo / Petite Bite keep a
+    // flat chance whether they fire or not.
+    const picked = weightedPick(pool, turnWeightsRef, ["duel"]);
     setSurpriseBoost(picked === "grosseBite");
     setSadomazoActive(picked === "sadomazo");
+    setPetiteBite(picked === "petiteBite");
 
     if (picked === "sadomazo") {
       showPopup(
@@ -1290,7 +1586,8 @@ function App() {
         `${activePlayer.name} est désigné et choisit son adversaire. Règle : le premier joue et s'arrête quand il veut, le second doit faire mieux — celui qui perd donne l'écart de points à l'autre sur son score principal.`
       );
     }
-    // "grosseBite" stays hidden — its popup fires later, at reveal time in attemptBank.
+    // "grosseBite" and "petiteBite" stay hidden — their popups fire later
+    // (at reveal time in attemptBank, and after validation in bankTurn).
   }, [
     activePlayer?.id,
     turnCount,
@@ -1298,6 +1595,7 @@ function App() {
     isTiebreak,
     partoozeIndividual,
     sadomazoIndividual,
+    petiteBiteEnabled,
     duelEnabled,
     currentRoundIndex,
     generalBoostRound,
@@ -1330,6 +1628,17 @@ function App() {
         `${activePlayer?.name} était secrètement boosté x2 ce tour — il faut jouer tous les dés avant de valider !`
       );
       return;
+    }
+    // He used every die without ever learning he was boosted: reveal it now,
+    // after the fact, so the doubled score doesn't come out of nowhere.
+    if (surpriseBoost && pool === 0 && !revealSurprise) {
+      const mult = (activePlayer?.boost ? 2 : 1) * (turnBoost ? 2 : 1) * 2;
+      showPopup(
+        "gold",
+        "🎉",
+        "GROSSE BITE SURPRISE !",
+        `Sans le savoir, ${activePlayer?.name} jouait boosté x2 ce tour — et il a bien joué tous ses dés : ${turnScore} pts deviennent ${turnScore * mult} pts !`
+      );
     }
     bankTurn(false);
   }
@@ -1451,6 +1760,65 @@ function App() {
     setPhase("playing");
   }
 
+  function confirmAnulingus(targetId) {
+    const chooser = players.find((p) => p.id === anulingusChooserId);
+    const targetPlayer = players.find((p) => p.id === targetId);
+    if (!chooser || !targetPlayer) return;
+    const a = chooser.total;
+    const b = targetPlayer.total;
+    setPlayers((ps) =>
+      ps.map((p) => {
+        if (p.id === chooser.id) return { ...p, total: b };
+        if (p.id === targetPlayer.id) return { ...p, total: a };
+        return p;
+      })
+    );
+    setHistory((h) => [
+      ...h,
+      {
+        round: (anulingusRoundIndex ?? 0) + 1,
+        playerName: `${chooser.name} ↔ ${targetPlayer.name}`,
+        points: 0,
+        bust: false,
+        eventKind: "anulingus",
+        special: `👅 Anulingus — ${chooser.name} (${a} pts) échange son score avec ${targetPlayer.name} (${b} pts)`,
+      },
+    ]);
+    setAnulingusChooserId(null);
+    // Don't clear anulingusRoundIndex here: the round-decision effect may have
+    // already armed a NEW Anulingus for the round that just started, and wiping
+    // it would silently cancel it. That effect clears stale indexes itself.
+    roundEndTakeoverRef.current = false;
+    setPhase("playing");
+    showPopup(
+      "purple",
+      "👅",
+      "ÉCHANGE EFFECTUÉ !",
+      `${chooser.name} repart avec ${b} pts et ${targetPlayer.name} avec ${a} pts.`
+    );
+  }
+
+  function refuseAnulingus() {
+    const chooser = players.find((p) => p.id === anulingusChooserId);
+    setHistory((h) => [
+      ...h,
+      {
+        round: (anulingusRoundIndex ?? 0) + 1,
+        playerName: chooser ? chooser.name : "—",
+        points: 0,
+        bust: false,
+        eventKind: "anulingus",
+        special: `👅 Anulingus — ${chooser ? chooser.name : "Le joueur désigné"} a refusé l'échange`,
+      },
+    ]);
+    setAnulingusChooserId(null);
+    // Don't clear anulingusRoundIndex here: the round-decision effect may have
+    // already armed a NEW Anulingus for the round that just started, and wiping
+    // it would silently cancel it. That effect clears stale indexes itself.
+    roundEndTakeoverRef.current = false;
+    setPhase("playing");
+  }
+
   if (phase === "setup") {
     return (
       <div className="app">
@@ -1542,7 +1910,13 @@ function App() {
             </div>
 
             <div className="features-panel">
-              <div className="features-panel-title">🎲 Mode Partouze</div>
+              <div className="features-panel-head">
+                <div className="features-panel-title">🎲 Mode Partouze</div>
+                <div className="features-bulk">
+                  <button className="bulk-btn" onClick={() => setAllPartouze(true)}>Tout cocher</button>
+                  <button className="bulk-btn ghost" onClick={() => setAllPartouze(false)}>Tout décocher</button>
+                </div>
+              </div>
 
               <div className="field">
                 <label>🎉 Grosse Bite</label>
@@ -1585,6 +1959,18 @@ function App() {
               </div>
 
               <div className="field">
+                <label>🤏 Petite Bite</label>
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={petiteBiteEnabled}
+                    onChange={() => setPetiteBiteEnabled((m) => !m)}
+                  />
+                  Petite Bite Surprise
+                </label>
+              </div>
+
+              <div className="field">
                 <label>🍆 Duel</label>
                 <label className="checkbox-field">
                   <input type="checkbox" checked={duelEnabled} onChange={() => setDuelEnabled((m) => !m)} />
@@ -1593,10 +1979,26 @@ function App() {
               </div>
 
               <div className="field">
-                <label>💀 Mini-jeu de manche</label>
+                <label>💀 Mini-jeux de manche</label>
                 <label className="checkbox-field">
                   <input type="checkbox" checked={gangbangEnabled} onChange={() => setGangbangEnabled((m) => !m)} />
                   GangBang
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={tournanteEnabled}
+                    onChange={() => setTournanteEnabled((m) => !m)}
+                  />
+                  Tout le Monde S'encule !
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={anulingusEnabled}
+                    onChange={() => setAnulingusEnabled((m) => !m)}
+                  />
+                  Anulingus
                 </label>
               </div>
 
@@ -1767,13 +2169,17 @@ function App() {
                 <p className="subtitle">
                   Duel surprise ! {challenger?.name} est désigné — il défie qui ?
                 </p>
-                <div className="starter-row">
+                <div className="pick-list">
                   {players.filter((p) => p.id !== duelChallengerId).map((p) => (
-                    <button key={p.id} className="starter-chip" onClick={() => pickDuelOpponent(p.id)}>
-                      {p.name}
+                    <button key={p.id} className="pick-row" onClick={() => pickDuelOpponent(p.id)}>
+                      <span className="pick-name">{p.name}</span>
+                      <span className="pick-score">{p.total} pts</span>
                     </button>
                   ))}
                 </div>
+                <p className="pick-self">
+                  Ton score actuel : <b>{challenger?.total} pts</b>
+                </p>
               </>
             )}
 
@@ -1841,6 +2247,48 @@ function App() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+        <EventPopup popup={activePopup} onDismiss={dismissPopup} />
+      </div>
+    );
+  }
+
+  if (phase === "anulingus") {
+    const chooser = players.find((p) => p.id === anulingusChooserId);
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="topbar">
+            <div className="topbar-left">
+              <span>👅</span>
+              <span>Anulingus</span>
+            </div>
+          </div>
+
+          <div className="setup-card">
+            <h1>👅 Anulingus</h1>
+            <p className="subtitle">
+              {chooser?.name} est désigné en fin de manche : il peut échanger son score total
+              avec le joueur de son choix… ou refuser.
+            </p>
+
+            <div className="pick-list">
+              {players.filter((p) => p.id !== anulingusChooserId).map((p) => (
+                <button key={p.id} className="pick-row" onClick={() => confirmAnulingus(p.id)}>
+                  <span className="pick-name">{p.name}</span>
+                  <span className="pick-score">{p.total} pts</span>
+                </button>
+              ))}
+            </div>
+
+            <p className="pick-self">
+              Ton score actuel : <b>{chooser?.total} pts</b>
+            </p>
+
+            <button className="danger-btn anulingus-refuse" onClick={refuseAnulingus}>
+              Refuser l'échange
+            </button>
           </div>
         </div>
         <EventPopup popup={activePopup} onDismiss={dismissPopup} />
@@ -2027,78 +2475,15 @@ function App() {
                     ) : (
                       h.sadomazo && <span className="boost-tag sadomazo">⛓️ sadomazo</span>
                     )}
+                    {h.petiteBite && <span className="boost-tag sadomazo">🤏 petite bite ÷2</span>}
                     {"total" in h && <span className="history-total">→ {h.total}</span>}
-                    {!isTiebreak && !h.special && !isEditing && (
-                      <button className="edit-btn" onClick={() => openEditEntry(realIndex)} title="Rectifier ce tour">
+                    {!isTiebreak && (
+                      <button className="edit-btn" onClick={() => openEditEntry(realIndex)} title="Rectifier">
                         ✏️
                       </button>
                     )}
                   </div>
-                  {h.edited && !isEditing && <span className="edited-tag">rectifié</span>}
-                  {isEditing && (
-                    <div className="edit-row">
-                      <label className="edit-bust-toggle">
-                        <input
-                          type="checkbox"
-                          checked={editBust}
-                          onChange={(e) => setEditBust(e.target.checked)}
-                        />
-                        Perdu (0 pts)
-                      </label>
-
-                      {!editBust && (
-                        <>
-                          {(h.boosted || h.turnBoosted) && (
-                            <div className="edit-mult-note">
-                              🍆 multiplicateur x{(h.boosted ? 2 : 1) * (h.turnBoosted ? 2 : 1)} conservé pour ce tour
-                            </div>
-                          )}
-
-                          {editCombos.length > 0 && (
-                            <div className="edit-combos-list">
-                              {editCombos.map((c, ci) => (
-                                <span key={ci} className="combo-tag small removable">
-                                  {c.label} <b>+{c.points}</b>
-                                  <button className="combo-remove" onClick={() => removeEditCombo(ci)}>✕</button>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-
-                          <div className="edit-pool-text">
-                            {diceCount - editPoolUsed()}/{diceCount} dés disponibles pour ce tour
-                          </div>
-
-                          <ComboTable pool={diceCount - editPoolUsed()} onAdd={addEditCombo} diceCount={diceCount} />
-
-                          <div className="manual-row edit-manual-add">
-                            <input
-                              type="number"
-                              className="manual-points"
-                              placeholder="Points"
-                              value={editManualInput}
-                              onChange={(e) => setEditManualInput(e.target.value)}
-                            />
-                            <input
-                              type="number"
-                              className="manual-cost"
-                              placeholder="Dés"
-                              value={editManualCost}
-                              min={0}
-                              max={diceCount - editPoolUsed()}
-                              onChange={(e) => setEditManualCost(e.target.value)}
-                            />
-                            <button className="chip manual-add" onClick={addEditManual}>➕</button>
-                          </div>
-                        </>
-                      )}
-
-                      <div className="edit-row-actions">
-                        <button className="mini-btn" onClick={saveEditEntry}>✔ Valider</button>
-                        <button className="mini-btn ghost" onClick={cancelEditEntry}>Annuler</button>
-                      </div>
-                    </div>
-                  )}
+                  {h.edited && <span className="edited-tag">rectifié</span>}
                   {h.combos && h.combos.length > 0 && (
                     <div className="history-combos">
                       {h.combos.map((c, ci) => (
@@ -2141,6 +2526,122 @@ function App() {
         </div>
       </div>
       <EventPopup popup={activePopup} onDismiss={dismissPopup} />
+
+      {editingIndex !== null && (() => {
+        const entry = history[editingIndex];
+        if (!entry) return null;
+        const isEvent = !!entry.special;
+        return (
+          <div className="edit-modal-overlay" onClick={cancelEditEntry}>
+            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="edit-modal-head">
+                <div className="edit-modal-title">
+                  ✏️ Rectifier — M{entry.round} · {entry.playerName}
+                </div>
+                <button className="edit-modal-close" onClick={cancelEditEntry}>✕</button>
+              </div>
+
+              <div className="edit-modal-body">
+                {isEvent ? (
+                  <>
+                    <p className="edit-modal-hint">
+                      Événement : {entry.special}
+                    </p>
+                    <p className="edit-modal-hint">
+                      Corrige directement les totaux. Saisis un écart (ex. <b>-100</b> ou <b>250</b>)
+                      pour chaque joueur concerné, laisse vide pour ne rien changer.
+                    </p>
+                    <div className="adjust-list">
+                      {editAdjustments.map((a) => (
+                        <div key={a.id} className="adjust-row">
+                          <span className="adjust-name">{a.name}</span>
+                          <input
+                            type="number"
+                            className="adjust-input"
+                            placeholder="0"
+                            value={a.delta}
+                            onChange={(e) => setEditAdjustment(a.id, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <label className="edit-bust-toggle">
+                      <input
+                        type="checkbox"
+                        checked={editBust}
+                        onChange={(e) => setEditBust(e.target.checked)}
+                      />
+                      Perdu (0 pts)
+                    </label>
+
+                    {!editBust && (
+                      <>
+                        {(entry.boosted || entry.turnBoosted || entry.partoozeBoosted || entry.petiteBite) && (
+                          <div className="edit-mult-note">
+                            {entry.petiteBite
+                              ? "🤏 Petite Bite (÷2) conservée pour ce tour"
+                              : `🍆 multiplicateur x${(entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1) * (entry.partoozeBoosted ? 2 : 1)} conservé pour ce tour`}
+                          </div>
+                        )}
+
+                        {editCombos.length > 0 && (
+                          <div className="edit-combos-list">
+                            {editCombos.map((c, ci) => (
+                              <span key={ci} className="combo-tag small removable">
+                                {c.label} <b>+{c.points}</b>
+                                <button className="combo-remove" onClick={() => removeEditCombo(ci)}>✕</button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="edit-pool-text">
+                          {diceCount - editPoolUsed()}/{diceCount} dés disponibles pour ce tour
+                        </div>
+
+                        <ComboTable pool={diceCount - editPoolUsed()} onAdd={addEditCombo} diceCount={diceCount} />
+
+                        <div className="manual-row edit-manual-add">
+                          <input
+                            type="number"
+                            className="manual-points"
+                            placeholder="Points"
+                            value={editManualInput}
+                            onChange={(e) => setEditManualInput(e.target.value)}
+                          />
+                          <input
+                            type="number"
+                            className="manual-cost"
+                            placeholder="Dés"
+                            value={editManualCost}
+                            min={0}
+                            max={diceCount - editPoolUsed()}
+                            onChange={(e) => setEditManualCost(e.target.value)}
+                          />
+                          <button className="chip manual-add" onClick={addEditManual}>➕</button>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="edit-modal-actions">
+                <button className="danger-btn" onClick={cancelEditEntry}>Annuler</button>
+                <button
+                  className="primary-btn"
+                  onClick={isEvent ? saveEventAdjustments : saveEditEntry}
+                >
+                  Valider
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
