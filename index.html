@@ -169,6 +169,7 @@
   .bulk-btn { background: var(--gold); color:#2a0a1c; border:none; border-radius:999px; padding:4px 10px; font-size:10.5px; font-weight:700; cursor:pointer; }
   .bulk-btn.ghost { background: transparent; border:1px solid var(--line); color: var(--chalk-dim); }
 
+  .pick-list-label { font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--chalk-dim); margin-bottom:7px; }
   .pick-list { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
   .pick-row {
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -807,6 +808,7 @@ function App() {
   const [anulingusRoundIndex, setAnulingusRoundIndex] = useState(null);
   const [anulingusResolved, setAnulingusResolved] = useState(false);
   const [anulingusChooserId, setAnulingusChooserId] = useState(null);
+  const [anulingusRoundNumber, setAnulingusRoundNumber] = useState(null);
   const [petiteBite, setPetiteBite] = useState(false);
 
   // Synchronous refs: multiple effects can fire in the same commit (e.g. when a
@@ -1401,6 +1403,7 @@ function App() {
       const chooser = order[Math.floor(Math.random() * order.length)];
       if (chooser) {
         setAnulingusChooserId(chooser.id);
+        setAnulingusRoundNumber(anulingusRoundIndex + 1);
         roundEndTakeoverRef.current = true;
         setPhase("anulingus");
         showPopup(
@@ -1583,7 +1586,7 @@ function App() {
         "purple",
         "🍆",
         "DUEL SURPRISE !",
-        `${activePlayer.name} est désigné et choisit son adversaire. Règle : le premier joue et s'arrête quand il veut, le second doit faire mieux — celui qui perd donne l'écart de points à l'autre sur son score principal.`
+        `${activePlayer.name} est désigné et choisit son adversaire. Règle : le premier joue et s'arrête quand il veut, le second doit faire mieux — celui qui perd le duel perd l'écart de points sur son score principal (le gagnant, lui, ne gagne rien).`
       );
     }
     // "grosseBite" and "petiteBite" stay hidden — their popups fire later
@@ -1764,27 +1767,42 @@ function App() {
     const chooser = players.find((p) => p.id === anulingusChooserId);
     const targetPlayer = players.find((p) => p.id === targetId);
     if (!chooser || !targetPlayer) return;
-    const a = chooser.total;
-    const b = targetPlayer.total;
-    setPlayers((ps) =>
-      ps.map((p) => {
-        if (p.id === chooser.id) return { ...p, total: b };
-        if (p.id === targetPlayer.id) return { ...p, total: a };
-        return p;
-      })
-    );
+
+    // Only the scores earned during THIS round are swapped, not the career
+    // totals: each player's total is shifted by the difference between the two
+    // round scores.
+    const roundNumber = anulingusRoundNumber ?? (anulingusRoundIndex ?? 0) + 1;
+    const roundScore = (name) =>
+      history
+        .filter((h) => h.round === roundNumber && !h.special && h.playerName === name)
+        .reduce((s, h) => s + h.points, 0);
+
+    const a = roundScore(chooser.name);
+    const b = roundScore(targetPlayer.name);
+    const delta = b - a;
+
+    if (delta !== 0) {
+      setPlayers((ps) =>
+        ps.map((p) => {
+          if (p.id === chooser.id) return { ...p, total: p.total + delta };
+          if (p.id === targetPlayer.id) return { ...p, total: p.total - delta };
+          return p;
+        })
+      );
+    }
     setHistory((h) => [
       ...h,
       {
-        round: (anulingusRoundIndex ?? 0) + 1,
+        round: roundNumber,
         playerName: `${chooser.name} ↔ ${targetPlayer.name}`,
         points: 0,
         bust: false,
         eventKind: "anulingus",
-        special: `👅 Anulingus — ${chooser.name} (${a} pts) échange son score avec ${targetPlayer.name} (${b} pts)`,
+        special: `👅 Anulingus — ${chooser.name} échange son score de manche (${a} pts) avec ${targetPlayer.name} (${b} pts)`,
       },
     ]);
     setAnulingusChooserId(null);
+    setAnulingusRoundNumber(null);
     // Don't clear anulingusRoundIndex here: the round-decision effect may have
     // already armed a NEW Anulingus for the round that just started, and wiping
     // it would silently cancel it. That effect clears stale indexes itself.
@@ -1794,8 +1812,16 @@ function App() {
       "purple",
       "👅",
       "ÉCHANGE EFFECTUÉ !",
-      `${chooser.name} repart avec ${b} pts et ${targetPlayer.name} avec ${a} pts.`
+      `${chooser.name} repart avec ${b} pts pour cette manche et ${targetPlayer.name} avec ${a} pts.`
     );
+  }
+
+  function anulingusRoundScore(name) {
+    if (!name) return 0;
+    const roundNumber = anulingusRoundNumber ?? (anulingusRoundIndex ?? 0) + 1;
+    return history
+      .filter((h) => h.round === roundNumber && !h.special && h.playerName === name)
+      .reduce((s, h) => s + h.points, 0);
   }
 
   function refuseAnulingus() {
@@ -1812,6 +1838,7 @@ function App() {
       },
     ]);
     setAnulingusChooserId(null);
+    setAnulingusRoundNumber(null);
     // Don't clear anulingusRoundIndex here: the round-decision effect may have
     // already armed a NEW Anulingus for the round that just started, and wiping
     // it would silently cancel it. That effect clears stale indexes itself.
@@ -2269,21 +2296,22 @@ function App() {
           <div className="setup-card">
             <h1>👅 Anulingus</h1>
             <p className="subtitle">
-              {chooser?.name} est désigné en fin de manche : il peut échanger son score total
-              avec le joueur de son choix… ou refuser.
+              {chooser?.name} est désigné en fin de manche : il peut échanger son
+              <b> score de cette manche</b> avec le joueur de son choix… ou refuser.
             </p>
 
+            <div className="pick-list-label">Scores de la manche qui vient de se terminer</div>
             <div className="pick-list">
               {players.filter((p) => p.id !== anulingusChooserId).map((p) => (
                 <button key={p.id} className="pick-row" onClick={() => confirmAnulingus(p.id)}>
                   <span className="pick-name">{p.name}</span>
-                  <span className="pick-score">{p.total} pts</span>
+                  <span className="pick-score">{anulingusRoundScore(p.name)} pts</span>
                 </button>
               ))}
             </div>
 
             <p className="pick-self">
-              Ton score actuel : <b>{chooser?.total} pts</b>
+              Ton score sur cette manche : <b>{anulingusRoundScore(chooser?.name)} pts</b>
             </p>
 
             <button className="danger-btn anulingus-refuse" onClick={refuseAnulingus}>
