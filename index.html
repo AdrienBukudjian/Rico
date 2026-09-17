@@ -206,6 +206,7 @@
   .adjust-row { display:flex; align-items:center; gap:10px; }
   .adjust-name { flex:1; font-size:13px; color: var(--chalk); }
   .adjust-input { width:110px !important; text-align:center; }
+  .duel-preview { margin-top:10px; padding:8px 10px; border-radius:10px; background: rgba(181,55,242,0.12); border:1px solid rgba(181,55,242,0.35); color:#e6b8fa; text-align:center; }
 
   .stepper { display:flex; align-items:center; gap:14px; }
   .stepper button { background: var(--panel-soft); color: var(--chalk); border:1px solid var(--line); width:38px; height:38px; border-radius:10px; font-size:18px; }
@@ -778,6 +779,8 @@ function App() {
   const [editManualInput, setEditManualInput] = useState("");
   const [editManualCost, setEditManualCost] = useState("1");
   const [editAdjustments, setEditAdjustments] = useState([]);
+  const [editDuelP1, setEditDuelP1] = useState("");
+  const [editDuelP2, setEditDuelP2] = useState("");
   const [turnBoost, setTurnBoost] = useState(false);
   const [surpriseBoost, setSurpriseBoost] = useState(false);
   const [revealSurprise, setRevealSurprise] = useState(false);
@@ -1089,6 +1092,13 @@ function App() {
     setEditAdjustments(
       players.map((p) => ({ id: p.id, name: p.name, delta: "" }))
     );
+    if (entry.duel) {
+      setEditDuelP1(String(entry.duel.p1Score));
+      setEditDuelP2(String(entry.duel.p2Score));
+    } else {
+      setEditDuelP1("");
+      setEditDuelP2("");
+    }
   }
 
   function cancelEditEntry() {
@@ -1098,6 +1108,8 @@ function App() {
     setEditManualInput("");
     setEditManualCost("1");
     setEditAdjustments([]);
+    setEditDuelP1("");
+    setEditDuelP2("");
   }
 
   function setEditAdjustment(id, value) {
@@ -1106,8 +1118,54 @@ function App() {
     );
   }
 
-  // For event rows (GangBang, Duel, Anulingus, Tournante…) there are no combos
-  // to re-declare — the fix is a direct correction of each player's total.
+  // Re-score a past duel: undo the penalty that was applied, then apply the one
+  // the corrected scores imply. Only the loser is ever debited.
+  function saveDuelEdit() {
+    const entry = history[editingIndex];
+    if (!entry || !entry.duel) {
+      cancelEditEntry();
+      return;
+    }
+    const d = entry.duel;
+    const p1 = Math.max(0, parseInt(editDuelP1, 10) || 0);
+    const p2 = Math.max(0, parseInt(editDuelP2, 10) || 0);
+
+    const newDiff = Math.abs(p1 - p2);
+    let newLoserId = null;
+    if (p1 > p2) newLoserId = d.opponentId;
+    else if (p2 > p1) newLoserId = d.challengerId;
+
+    const deltas = {};
+    if (d.loserId !== null && d.diff > 0) deltas[d.loserId] = (deltas[d.loserId] || 0) + d.diff;
+    if (newLoserId !== null && newDiff > 0) deltas[newLoserId] = (deltas[newLoserId] || 0) - newDiff;
+
+    setPlayers((ps) =>
+      ps.map((p) => (deltas[p.id] ? { ...p, total: p.total + deltas[p.id] } : p))
+    );
+
+    const newLoserName =
+      newLoserId === d.challengerId ? d.challengerName : newLoserId === d.opponentId ? d.opponentName : null;
+    const newWinnerName =
+      newLoserId === d.challengerId ? d.opponentName : newLoserId === d.opponentId ? d.challengerName : null;
+
+    setHistory((h) =>
+      h.map((e, i) =>
+        i === editingIndex
+          ? {
+              ...e,
+              edited: true,
+              lossByName: newLoserName && newDiff > 0 ? { [newLoserName]: newDiff } : {},
+              duel: { ...d, p1Score: p1, p2Score: p2, loserId: newLoserId, diff: newDiff },
+              special:
+                newDiff === 0
+                  ? `🍆 Duel — égalité entre ${d.challengerName} (${p1}) et ${d.opponentName} (${p2}), personne ne perd de points`
+                  : `🍆 Duel — ${d.challengerName} ${p1} vs ${d.opponentName} ${p2} : ${newLoserName} perd ${newDiff} pts face à ${newWinnerName}`,
+            }
+          : e
+      )
+    );
+    cancelEditEntry();
+  }
   function saveEventAdjustments() {
     const entry = history[editingIndex];
     if (!entry) {
@@ -1718,6 +1776,16 @@ function App() {
         bust: false,
         targetedNames: [challengerName, opponentName],
         lossByName: loserName && diff > 0 ? { [loserName]: diff } : {},
+        duel: {
+          challengerId: duelChallengerId,
+          opponentId: duelOpponentId,
+          challengerName,
+          opponentName,
+          p1Score,
+          p2Score,
+          loserId,
+          diff,
+        },
         special:
           diff === 0
             ? `🍆 Duel — égalité entre ${challengerName} et ${opponentName}, personne ne perd de points`
@@ -2558,7 +2626,8 @@ function App() {
       {editingIndex !== null && (() => {
         const entry = history[editingIndex];
         if (!entry) return null;
-        const isEvent = !!entry.special;
+        const isDuel = !!entry.duel;
+        const isEvent = !!entry.special && !isDuel;
         return (
           <div className="edit-modal-overlay" onClick={cancelEditEntry}>
             <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
@@ -2570,7 +2639,48 @@ function App() {
               </div>
 
               <div className="edit-modal-body">
-                {isEvent ? (
+                {isDuel ? (
+                  <>
+                    <p className="edit-modal-hint">
+                      Corrige les scores du duel. L'écart est recalculé automatiquement
+                      et seul le perdant est débité.
+                    </p>
+                    <div className="adjust-list">
+                      <div className="adjust-row">
+                        <span className="adjust-name">{entry.duel.challengerName}</span>
+                        <input
+                          type="number"
+                          className="adjust-input"
+                          value={editDuelP1}
+                          onChange={(e) => setEditDuelP1(e.target.value)}
+                        />
+                      </div>
+                      <div className="adjust-row">
+                        <span className="adjust-name">{entry.duel.opponentName}</span>
+                        <input
+                          type="number"
+                          className="adjust-input"
+                          value={editDuelP2}
+                          onChange={(e) => setEditDuelP2(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    {(() => {
+                      const a = Math.max(0, parseInt(editDuelP1, 10) || 0);
+                      const b = Math.max(0, parseInt(editDuelP2, 10) || 0);
+                      const diff = Math.abs(a - b);
+                      const loser =
+                        a > b ? entry.duel.opponentName : b > a ? entry.duel.challengerName : null;
+                      return (
+                        <p className="edit-modal-hint duel-preview">
+                          {diff === 0
+                            ? "Égalité — personne ne perd de points."
+                            : `${loser} perdra ${diff} pts.`}
+                        </p>
+                      );
+                    })()}
+                  </>
+                ) : isEvent ? (
                   <>
                     <p className="edit-modal-hint">
                       Événement : {entry.special}
@@ -2661,7 +2771,7 @@ function App() {
                 <button className="danger-btn" onClick={cancelEditEntry}>Annuler</button>
                 <button
                   className="primary-btn"
-                  onClick={isEvent ? saveEventAdjustments : saveEditEntry}
+                  onClick={isDuel ? saveDuelEdit : isEvent ? saveEventAdjustments : saveEditEntry}
                 >
                   Valider
                 </button>
