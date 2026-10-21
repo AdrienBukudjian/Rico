@@ -227,7 +227,16 @@
   .custom-chance-label { font-size: 12.5px; color: var(--chalk); }
   .custom-chance-hint { font-size: 10.5px; color: var(--chalk-dim); line-height: 1.4; margin: 0 0 8px; }
 
-  .names-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .names-grid { display:flex; flex-direction:column; gap:8px; }
+  .name-row { display:flex; align-items:center; gap:6px; }
+  .name-rank { flex:0 0 22px; text-align:center; font-size:12px; font-weight:700; color: var(--chalk-dim); }
+  .name-row input { flex:1; min-width:0; }
+  .drag-handle { flex:0 0 auto; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:10px; width:44px; min-height:44px; font-size:20px; line-height:1; padding:0; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .drag-handle:active { cursor:grabbing; }
+  .name-row { border-radius:12px; transition: transform .12s, box-shadow .12s, background .12s; }
+  .name-row.dragging { transform: scale(1.03); background: rgba(255,45,149,0.12); box-shadow: 0 0 16px rgba(255,45,149,0.55); position:relative; z-index:2; }
+  .name-row.dragging .drag-handle { color: var(--gold); border-color: var(--gold); cursor:grabbing; }
+  .order-hint { color: var(--chalk-dim); font-size:12px; margin:8px 0 0; }
   input:not([type="checkbox"]) { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:10px; padding:12px 11px; font-family:'Inter'; font-size:16px; outline:none; width:100%; min-height:44px; }
   input:not([type="checkbox"]):focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,45,149,0.25); }
   input::placeholder { color: var(--chalk-dim); }
@@ -887,6 +896,73 @@ function App() {
     });
     if (startIndex >= nc) setStartIndex(0);
     setBoostedIndices((prev) => prev.filter((i) => i < nc));
+  }
+
+  const rowRefs = useRef([]);
+  const dragIdxRef = useRef(null);
+  const [dragIndex, setDragIndex] = useState(null);
+
+  // Move the player at `from` to position `to`; the "Qui commence ?" choice and
+  // the permanent Grosse Bite flags follow the player they belong to.
+  function moveTo(from, to) {
+    if (from === to) return;
+    const remap = (k) => {
+      if (k === from) return to;
+      if (from < to && k > from && k <= to) return k - 1;
+      if (from > to && k >= to && k < from) return k + 1;
+      return k;
+    };
+    setNames((prev) => {
+      const copy = [...prev];
+      const [item] = copy.splice(from, 1);
+      copy.splice(to, 0, item);
+      return copy;
+    });
+    setStartIndex((k) => remap(k));
+    setBoostedIndices((prev) => prev.map(remap));
+  }
+
+  function startDrag(e, i) {
+    e.preventDefault();
+    const count = playerCount;
+    dragIdxRef.current = i;
+    setDragIndex(i);
+    document.body.style.userSelect = "none";
+    document.body.style.webkitUserSelect = "none";
+
+    const onMove = (ev) => {
+      const y = ev.clientY;
+      let target = dragIdxRef.current;
+      const first = rowRefs.current[0]?.getBoundingClientRect();
+      const last = rowRefs.current[count - 1]?.getBoundingClientRect();
+      if (first && y < first.top) {
+        target = 0;
+      } else if (last && y > last.bottom) {
+        target = count - 1;
+      } else {
+        for (let idx = 0; idx < count; idx++) {
+          const r = rowRefs.current[idx]?.getBoundingClientRect();
+          if (r && y >= r.top && y <= r.bottom) { target = idx; break; }
+        }
+      }
+      if (target !== dragIdxRef.current) {
+        moveTo(dragIdxRef.current, target);
+        dragIdxRef.current = target;
+        setDragIndex(target);
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      dragIdxRef.current = null;
+      setDragIndex(null);
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
   }
 
   function toggleBoostedSetup(i) {
@@ -1672,6 +1748,8 @@ function App() {
   }, [phase]);
 
   function attemptBank() {
+    // Nothing scored: the only way out is the "Perdu" button.
+    if (turnAdds.length === 0) return;
     if (isTiebreak) {
       tbBank(false);
       return;
@@ -1947,18 +2025,34 @@ function App() {
               <label>Noms des joueurs</label>
               <div className="names-grid">
                 {names.map((nm, i) => (
-                  <input
+                  <div
+                    className={"name-row" + (dragIndex === i ? " dragging" : "")}
                     key={i}
-                    value={nm}
-                    placeholder={`Joueur ${i + 1}`}
-                    onChange={(e) => {
-                      const copy = [...names];
-                      copy[i] = e.target.value;
-                      setNames(copy);
-                    }}
-                  />
+                    ref={(el) => { rowRefs.current[i] = el; }}
+                  >
+                    <span className="name-rank">{i + 1}</span>
+                    <input
+                      value={nm}
+                      placeholder={`Joueur ${i + 1}`}
+                      onChange={(e) => {
+                        const copy = [...names];
+                        copy[i] = e.target.value;
+                        setNames(copy);
+                      }}
+                    />
+                    <button
+                      className="drag-handle"
+                      aria-label={`Déplacer ${nm.trim() || `Joueur ${i + 1}`} (glisser, ou flèches haut/bas)`}
+                      onPointerDown={(e) => startDrag(e, i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowUp" && i > 0) { e.preventDefault(); moveTo(i, i - 1); }
+                        if (e.key === "ArrowDown" && i < names.length - 1) { e.preventDefault(); moveTo(i, i + 1); }
+                      }}
+                    >⠿</button>
+                  </div>
                 ))}
               </div>
+              <p className="order-hint">Glisse la poignée ⠿ pour changer l'ordre de jeu (1 = premier à jouer, sauf si tu choisis un autre joueur pour commencer).</p>
             </div>
 
             <div className="field">
@@ -2336,7 +2430,11 @@ function App() {
                   <button className="danger-btn" onClick={() => finishDuelTurn(true)}>
                     Perdu (0)
                   </button>
-                  <button className="primary-btn" onClick={() => finishDuelTurn(false)}>
+                  <button
+                    className="primary-btn"
+                    disabled={duelTurnAdds.length === 0}
+                    onClick={() => finishDuelTurn(false)}
+                  >
                     S'arrêter ici
                   </button>
                 </div>
@@ -2612,6 +2710,7 @@ function App() {
           <button
             className={"primary-btn" + (buttonShake ? " shake" : "")}
             disabled={
+              turnAdds.length === 0 ||
               (activePlayer && (activePlayer.boost || turnBoost || generalBoostRound) && pool > 0) ||
               (!isTiebreak && revealSurprise && pool > 0)
             }
