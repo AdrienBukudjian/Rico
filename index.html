@@ -250,7 +250,7 @@
   .boost-lock-note { font-size:11px; color:#e07a5f; text-align:center; padding:4px 6px; margin-bottom:8px; }
   .boost-lock-note.general { color:var(--gold); font-weight:700; }
   .boost-lock-note.surprise { color:var(--gold); font-weight:700; background: rgba(255,45,149,0.12); border-radius:8px; animation: surpriseFlash 0.5s ease; }
-  .sadomazo-info {
+  .giclette-info {
     display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600; text-align:left;
     padding:7px 10px; margin-bottom:8px; border-radius:10px;
     background: linear-gradient(100deg, rgba(224,122,109,0.08), rgba(224,122,109,0.22), rgba(224,122,109,0.08));
@@ -259,7 +259,7 @@
     color: var(--red);
     animation: bannerPop 0.4s ease, shimmerSweep 3s linear infinite;
   }
-  .sadomazo-chain { display:inline-block; font-size:15px; animation: chainSwing 1.4s ease-in-out infinite; transform-origin: top center; }
+  .giclette-chain { display:inline-block; font-size:15px; animation: chainSwing 1.4s ease-in-out infinite; transform-origin: top center; }
   .danger-btn { background: rgba(255,77,109,0.08); color: var(--red); border:1.5px solid var(--red); border-radius:14px; padding:14px; font-weight:600; flex:1; min-height:48px; box-shadow: 0 0 14px rgba(255,77,109,0.25); }
 
   .topbar { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding:0 2px; }
@@ -321,7 +321,7 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     animation: bannerPop 0.4s ease, shimmerSweep 2.4s linear infinite;
   }
-  .boost-tag.sadomazo {
+  .boost-tag.giclette {
     display:inline-block; font-weight:700;
     background: linear-gradient(90deg, var(--red), #ffcfc7, var(--red));
     background-size: 220% 100%;
@@ -709,11 +709,11 @@ function computeSpecialEventStats(players, history) {
   });
 
   history.forEach((h) => {
-    // Individual (non-general) Grosse Bite / Sadomazo surprises target exactly one player.
+    // Individual (non-general) Grosse Bite / Giclette surprises target exactly one player.
     if (h.partoozeBoosted && !h.partoozeGeneralRound && h.playerName in targetCountByName) {
       targetCountByName[h.playerName] += 1;
     }
-    if (h.sadomazo && !h.sadomazoGeneral && h.playerName in targetCountByName) {
+    if (h.giclette && !h.gicletteGeneral && h.playerName in targetCountByName) {
       targetCountByName[h.playerName] += 1;
     }
     // GangBang and Duel entries carry structured targeting/loss data.
@@ -748,8 +748,8 @@ function App() {
   const [partoozeIndividual, setPartoozeIndividual] = useState(false);
   const [partoozeGeneral, setPartoozeGeneral] = useState(false);
   const [duelEnabled, setDuelEnabled] = useState(false);
-  const [sadomazoIndividual, setSadomazoIndividual] = useState(false);
-  const [sadomazoGeneral, setSadomazoGeneral] = useState(false);
+  const [gicletteIndividual, setGicletteIndividual] = useState(false);
+  const [gicletteGeneral, setGicletteGeneral] = useState(false);
   const [gangbangEnabled, setGangbangEnabled] = useState(false);
   const [tournanteEnabled, setTournanteEnabled] = useState(false);
   const [anulingusEnabled, setAnulingusEnabled] = useState(false);
@@ -797,8 +797,8 @@ function App() {
   const [duelManualInput, setDuelManualInput] = useState("");
   const [duelManualCost, setDuelManualCost] = useState("1");
   const [generalBoostRound, setGeneralBoostRound] = useState(false);
-  const [sadomazoActive, setSadomazoActive] = useState(false);
-  const [sadomazoGeneralRound, setSadomazoGeneralRound] = useState(false);
+  const [gicletteActive, setGicletteActive] = useState(false);
+  const [gicletteGeneralRound, setGicletteGeneralRound] = useState(false);
   const [gangbangRoundIndex, setGangbangRoundIndex] = useState(null);
   const [gangbangResolved, setGangbangResolved] = useState(false);
   const [gangbangResult, setGangbangResult] = useState(null);
@@ -819,7 +819,7 @@ function App() {
   // effect in that same commit, so round-exclusivity checks read these refs
   // instead, which update immediately.
   const generalBoostRoundRef = useRef(false);
-  const sadomazoGeneralRoundRef = useRef(false);
+  const gicletteGeneralRoundRef = useRef(false);
   const lastDecidedRoundRef = useRef(-1);
   const lastDecidedTurnRef = useRef(-1);
   // Set synchronously when an end-of-round resolution takes over the screen
@@ -861,9 +861,9 @@ function App() {
     generalBoostRoundRef.current = v;
     setGeneralBoostRound(v);
   }
-  function setSadomazoGeneralRoundSync(v) {
-    sadomazoGeneralRoundRef.current = v;
-    setSadomazoGeneralRound(v);
+  function setGicletteGeneralRoundSync(v) {
+    gicletteGeneralRoundRef.current = v;
+    setGicletteGeneralRound(v);
   }
 
   const [tbPlayers, setTbPlayers] = useState([]);
@@ -902,8 +902,8 @@ function App() {
   function setAllPartouze(value) {
     setPartoozeIndividual(value);
     setPartoozeGeneral(value);
-    setSadomazoIndividual(value);
-    setSadomazoGeneral(value);
+    setGicletteIndividual(value);
+    setGicletteGeneral(value);
     setPetiteBiteEnabled(value);
     setDuelEnabled(value);
     setGangbangEnabled(value);
@@ -1039,8 +1039,8 @@ function App() {
         turnBoosted: !bust && turnBoost,
         partoozeBoosted: !bust && surpriseBoost,
         partoozeGeneralRound: !bust && surpriseBoost && generalBoostRound,
-        sadomazo: sadomazoActive,
-        sadomazoGeneral: sadomazoActive && sadomazoGeneralRound,
+        giclette: gicletteActive,
+        gicletteGeneral: gicletteActive && gicletteGeneralRound,
         petiteBite: halved,
         combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
@@ -1481,7 +1481,7 @@ function App() {
   useEffect(() => {
     if (isTiebreak) {
       setGeneralBoostRoundSync(false);
-      setSadomazoGeneralRoundSync(false);
+      setGicletteGeneralRoundSync(false);
       if (gangbangRoundIndex !== null) setGangbangRoundIndex(null);
       return;
     }
@@ -1491,7 +1491,7 @@ function App() {
 
     const pool = [];
     if (partoozeGeneral) pool.push("general");
-    if (sadomazoGeneral) pool.push("sadomazoGeneral");
+    if (gicletteGeneral) pool.push("gicletteGeneral");
     if (gangbangEnabled) pool.push("gangbang");
     if (tournanteEnabled) pool.push("tournante");
     if (anulingusEnabled) pool.push("anulingus");
@@ -1503,7 +1503,7 @@ function App() {
 
     if (pool.length === 0 || Math.random() >= ROUND_EVENT_CHANCE) {
       setGeneralBoostRoundSync(false);
-      setSadomazoGeneralRoundSync(false);
+      setGicletteGeneralRoundSync(false);
       if (gangbangRoundIndex !== currentRoundIndex) setGangbangRoundIndex(null);
       clearDeferred();
       return;
@@ -1512,7 +1512,7 @@ function App() {
     // All round events are adaptive: whichever fires gets damped, the others rise.
     const picked = weightedPick(pool, roundWeightsRef);
     setGeneralBoostRoundSync(picked === "general");
-    setSadomazoGeneralRoundSync(picked === "sadomazoGeneral");
+    setGicletteGeneralRoundSync(picked === "gicletteGeneral");
     if (picked === "gangbang") {
       setGangbangRoundIndex(currentRoundIndex);
       setGangbangResolved(false);
@@ -1545,11 +1545,11 @@ function App() {
         "GROSSE BITE SURPRISE GÉNÉRALE !",
         "Cette manche, tous les joueurs jouent avec un score doublé (x2). Règle : il faut jouer la totalité de ses dés pour pouvoir valider son tour."
       );
-    } else if (picked === "sadomazoGeneral") {
+    } else if (picked === "gicletteGeneral") {
       showPopup(
         "red",
         "⛓️",
-        "SADOMAZO GÉNÉRALE !",
+        "GICLETTE GÉNÉRALE !",
         "Cette manche, chaque joueur ne fait qu'un seul lancer de tous ses dés (pas de mise de côté ni de relance). Il prend les combinaisons présentes sur ce lancer — plusieurs combinaisons possibles en même temps. Si rien ne score, le tour vaut 0."
       );
     } else {
@@ -1565,7 +1565,7 @@ function App() {
     phase,
     isTiebreak,
     partoozeGeneral,
-    sadomazoGeneral,
+    gicletteGeneral,
     gangbangEnabled,
     tournanteEnabled,
     anulingusEnabled,
@@ -1576,7 +1576,7 @@ function App() {
   useEffect(() => {
     if (isTiebreak) {
       setSurpriseBoost(false);
-      setSadomazoActive(false);
+      setGicletteActive(false);
       return;
     }
     if ((phase !== "playing" && phase !== "duel") || !activePlayer) return;
@@ -1587,49 +1587,49 @@ function App() {
     if (lastDecidedTurnRef.current === turnCount) return;
     lastDecidedTurnRef.current = turnCount;
 
-    // A permanent Grosse Bite player is immune to Sadomazo and Petite Bite, and
+    // A permanent Grosse Bite player is immune to Giclette and Petite Bite, and
     // a Grosse Bite surprise would be redundant (he's already x2) — but he stays
     // fully eligible for the Duel.
     const immune = activePlayer.boost;
 
     if (generalBoostRoundRef.current) {
       setSurpriseBoost(!immune);
-      setSadomazoActive(false);
+      setGicletteActive(false);
       setPetiteBite(false);
       return;
     }
-    if (sadomazoGeneralRoundRef.current) {
+    if (gicletteGeneralRoundRef.current) {
       setSurpriseBoost(false);
-      setSadomazoActive(!immune);
+      setGicletteActive(!immune);
       setPetiteBite(false);
       return;
     }
 
     const pool = [];
     if (partoozeIndividual && !immune) pool.push("grosseBite");
-    if (sadomazoIndividual && !immune) pool.push("sadomazo");
+    if (gicletteIndividual && !immune) pool.push("giclette");
     if (petiteBiteEnabled && !immune) pool.push("petiteBite");
     if (duelEnabled && currentRoundIndex >= 1) pool.push("duel");
 
     if (pool.length === 0 || Math.random() >= TURN_EVENT_CHANCE) {
       setSurpriseBoost(false);
-      setSadomazoActive(false);
+      setGicletteActive(false);
       setPetiteBite(false);
       return;
     }
 
-    // Only the duel adapts here — Grosse Bite / Sadomazo / Petite Bite keep a
+    // Only the duel adapts here — Grosse Bite / Giclette / Petite Bite keep a
     // flat chance whether they fire or not.
     const picked = weightedPick(pool, turnWeightsRef, ["duel"]);
     setSurpriseBoost(picked === "grosseBite");
-    setSadomazoActive(picked === "sadomazo");
+    setGicletteActive(picked === "giclette");
     setPetiteBite(picked === "petiteBite");
 
-    if (picked === "sadomazo") {
+    if (picked === "giclette") {
       showPopup(
         "red",
         "⛓️",
-        "SADOMAZO !",
+        "GICLETTE !",
         `${activePlayer.name} ne fait qu'un seul lancer de tous ses dés ce tour (pas de mise de côté ni de relance) et prend les combinaisons présentes sur ce lancer — plusieurs combinaisons possibles en même temps. Si rien ne score, le tour vaut 0.`
       );
     } else if (picked === "duel") {
@@ -1655,12 +1655,12 @@ function App() {
     phase,
     isTiebreak,
     partoozeIndividual,
-    sadomazoIndividual,
+    gicletteIndividual,
     petiteBiteEnabled,
     duelEnabled,
     currentRoundIndex,
     generalBoostRound,
-    sadomazoGeneralRound,
+    gicletteGeneralRound,
   ]);
 
   useEffect(() => {
@@ -2034,22 +2034,22 @@ function App() {
               </div>
 
               <div className="field">
-                <label>⛓️ Sadomazo</label>
+                <label>⛓️ Giclette</label>
                 <label className="checkbox-field">
                   <input
                     type="checkbox"
-                    checked={sadomazoIndividual}
-                    onChange={() => setSadomazoIndividual((m) => !m)}
+                    checked={gicletteIndividual}
+                    onChange={() => setGicletteIndividual((m) => !m)}
                   />
-                  Sadomazo Individuelle
+                  Giclette Individuelle
                 </label>
                 <label className="checkbox-field">
                   <input
                     type="checkbox"
-                    checked={sadomazoGeneral}
-                    onChange={() => setSadomazoGeneral((m) => !m)}
+                    checked={gicletteGeneral}
+                    onChange={() => setGicletteGeneral((m) => !m)}
                   />
-                  Sadomazo Générale
+                  Giclette Générale
                 </label>
               </div>
 
@@ -2287,21 +2287,21 @@ function App() {
                     : `Au tour de ${opponent?.name} — doit dépasser ${duelP1Score} pts`}
                 </p>
                 {(duelStep === "p1" ? challenger : opponent)?.boost && (
-                  <div className="sadomazo-info">
-                    <span className="sadomazo-chain">🍆</span>
+                  <div className="giclette-info">
+                    <span className="giclette-chain">🍆</span>
                     Grosse bite permanente : le score de ce duel sera doublé (x2) pour {(duelStep === "p1" ? challenger : opponent)?.name}.
                   </div>
                 )}
                 {generalBoostRound && !(duelStep === "p1" ? challenger : opponent)?.boost && (
-                  <div className="sadomazo-info">
-                    <span className="sadomazo-chain">🎊</span>
+                  <div className="giclette-info">
+                    <span className="giclette-chain">🎊</span>
                     Manche Grosse Bite Surprise GÉNÉRALE en cours : le score de ce duel est doublé (x2) pour {(duelStep === "p1" ? challenger : opponent)?.name}.
                   </div>
                 )}
-                {sadomazoGeneralRound && (
-                  <div className="sadomazo-info">
-                    <span className="sadomazo-chain">⛓️</span>
-                    Manche Sadomazo GÉNÉRALE en cours (informatif, aucun impact sur ce duel).
+                {gicletteGeneralRound && (
+                  <div className="giclette-info">
+                    <span className="giclette-chain">⛓️</span>
+                    Manche Giclette GÉNÉRALE en cours (informatif, aucun impact sur ce duel).
                   </div>
                 )}
 
@@ -2431,8 +2431,8 @@ function App() {
           <div className="round-event-chip gold">🍆 Grosse Bite</div>
         )}
 
-        {!isTiebreak && sadomazoGeneralRound && (
-          <div className="round-event-chip red">⛓️ Sadomazo</div>
+        {!isTiebreak && gicletteGeneralRound && (
+          <div className="round-event-chip red">⛓️ Giclette</div>
         )}
 
         {!isTiebreak && gangbangRoundIndex === currentRoundIndex && (
@@ -2472,10 +2472,10 @@ function App() {
                 : `🍆 Tour grosse bite : il faut jouer les ${diceCount} dés avant de valider (${pool} restant${pool > 1 ? "s" : ""})`}
             </div>
           )}
-          {!isTiebreak && sadomazoActive && !sadomazoGeneralRound && (
-            <div className="sadomazo-info">
-              <span className="sadomazo-chain">⛓️</span>
-              Sadomazo : un seul lancer, pas de mise de côté ni de relance — prends les combinaisons présentes dessus, sinon c'est 0.
+          {!isTiebreak && gicletteActive && !gicletteGeneralRound && (
+            <div className="giclette-info">
+              <span className="giclette-chain">⛓️</span>
+              Giclette : un seul lancer, pas de mise de côté ni de relance — prends les combinaisons présentes dessus, sinon c'est 0.
             </div>
           )}
 
@@ -2566,12 +2566,12 @@ function App() {
                     ) : (
                       h.partoozeBoosted && <span className="boost-tag partouze">🎉 grosse bite surprise x2</span>
                     )}
-                    {h.sadomazoGeneral ? (
-                      <span className="boost-tag sadomazo">⛓️ sadomazo générale</span>
+                    {h.gicletteGeneral ? (
+                      <span className="boost-tag giclette">⛓️ giclette générale</span>
                     ) : (
-                      h.sadomazo && <span className="boost-tag sadomazo">⛓️ sadomazo</span>
+                      h.giclette && <span className="boost-tag giclette">⛓️ giclette</span>
                     )}
-                    {h.petiteBite && <span className="boost-tag sadomazo">🤏 petite bite ÷2</span>}
+                    {h.petiteBite && <span className="boost-tag giclette">🤏 petite bite ÷2</span>}
                     {"total" in h && <span className="history-total">→ {h.total}</span>}
                     {!isTiebreak && (
                       <button className="edit-btn" onClick={() => openEditEntry(realIndex)} title="Rectifier">
