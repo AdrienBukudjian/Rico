@@ -779,6 +779,10 @@ function App() {
   const [triggered, setTriggered] = useState(false);
   const [turnsLeftAfterTrigger, setTurnsLeftAfterTrigger] = useState(0);
   const [triggerInfo, setTriggerInfo] = useState(null);
+  // End-of-round resolution: 0 = idle, 1 = round just ended (events not yet
+  // resolved), 2 = events resolved, waiting for popups/choices before deciding
+  // whether the game is over.
+  const [roundEndStage, setRoundEndStage] = useState(0);
   const [confirmInstantWin, setConfirmInstantWin] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -1021,6 +1025,7 @@ function App() {
     lastDecidedRoundRef.current = -1;
     lastDecidedTurnRef.current = -1;
     roundEndTakeoverRef.current = false;
+    setRoundEndStage(0);
     setPhase("playing");
   }
 
@@ -1131,31 +1136,22 @@ function App() {
     }
     resetTurnState();
 
+    // The game never ends right here: a round-ending event (Gangbang, Tournante,
+    // Anulingus) can still move the scores. The end-of-game decision is taken
+    // once the round and its events are fully resolved (see the end-of-round
+    // effect below).
+    const posInRound = turnCount % n;
     if (!triggered && newTotal >= target) {
-      const posInRound = turnCount % n;
-      const remaining = n - 1 - posInRound;
       setTriggered(true);
       setTriggerInfo({ name: currentPlayer.name, score: newTotal });
-      if (remaining === 0) {
-        finalizeGame(updated);
-        return;
-      }
-      setTurnsLeftAfterTrigger(remaining);
-      setTurnCount((c) => c + 1);
-      return;
+      setTurnsLeftAfterTrigger(n - 1 - posInRound);
+    } else if (triggered) {
+      setTurnsLeftAfterTrigger(Math.max(0, turnsLeftAfterTrigger - 1));
     }
-
-    if (triggered) {
-      const nt = turnsLeftAfterTrigger - 1;
-      if (nt <= 0) {
-        finalizeGame(updated);
-        return;
-      }
-      setTurnsLeftAfterTrigger(nt);
-      setTurnCount((c) => c + 1);
-      return;
+    if (posInRound === n - 1) {
+      roundEndTakeoverRef.current = true;
+      setRoundEndStage(1);
     }
-
     setTurnCount((c) => c + 1);
   }
 
@@ -1548,6 +1544,9 @@ function App() {
         );
       }
     }
+    // All round-ending events have now been applied (or armed, for Anulingus):
+    // the end-of-round check may proceed once their state updates are visible.
+    setRoundEndStage((st) => (st === 1 ? 2 : st));
   }, [currentRoundIndex, phase]);
 
   // Round-level pool: at most one of these three can be active per round, and
@@ -1562,6 +1561,8 @@ function App() {
       return;
     }
     if (phase !== "playing" && phase !== "duel") return;
+    // Next round's events wait until the end-of-round check is over.
+    if (roundEndTakeoverRef.current) return;
     if (lastDecidedRoundRef.current === currentRoundIndex) return;
     lastDecidedRoundRef.current = currentRoundIndex;
 
@@ -1645,6 +1646,7 @@ function App() {
     gangbangEnabled,
     tournanteEnabled,
     anulingusEnabled,
+    roundEndStage,
   ]);
 
   // Turn-level pool: same idea — at most one of these three per turn, overall
@@ -1737,7 +1739,55 @@ function App() {
     currentRoundIndex,
     generalBoostRound,
     gicletteGeneralRound,
+    roundEndStage,
   ]);
+
+  function cancelLastTurn(roundNumber) {
+    setTriggered(false);
+    setTurnsLeftAfterTrigger(0);
+    setTriggerInfo(null);
+    setHistory((h) => [
+      ...h,
+      {
+        round: roundNumber,
+        playerName: "Tous",
+        points: 0,
+        bust: false,
+        special: `🛡️ Dernier tour annulé — plus personne n'atteint ${target} pts`,
+      },
+    ]);
+    showPopup(
+      "red",
+      "🛡️",
+      "DERNIER TOUR ANNULÉ !",
+      `Plus personne n'atteint ${target} pts : la partie continue.`
+    );
+  }
+
+  // End-of-round check and "last turn" cancellation.
+  //  - During a round: if everyone who reached the target fell back under it
+  //    (e.g. after a Duel), the last turn is cancelled.
+  //  - At the end of a round, once its events are resolved and their popups
+  //    dismissed: anyone at or above the target ends the game (even if nobody
+  //    had reached it before); otherwise the game goes on.
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const anyAtTarget = players.some((p) => p.total >= target);
+
+    if (roundEndStage !== 0) {
+      if (roundEndStage !== 2 || popupQueue.length > 0) return;
+      roundEndTakeoverRef.current = false;
+      setRoundEndStage(0);
+      if (anyAtTarget) {
+        finalizeGame(players);
+        return;
+      }
+      if (triggered) cancelLastTurn(currentRoundIndex);
+      return;
+    }
+
+    if (triggered && !anyAtTarget) cancelLastTurn(currentRoundIndex + 1);
+  }, [phase, players, roundEndStage, popupQueue.length, triggered, target]);
 
   useEffect(() => {
     if (phase !== "finished") return;
@@ -1952,7 +2002,7 @@ function App() {
     // Don't clear anulingusRoundIndex here: the round-decision effect may have
     // already armed a NEW Anulingus for the round that just started, and wiping
     // it would silently cancel it. That effect clears stale indexes itself.
-    roundEndTakeoverRef.current = false;
+    // roundEndTakeoverRef stays set: the end-of-round check releases it.
     setPhase("playing");
     showPopup(
       "purple",
@@ -1988,7 +2038,7 @@ function App() {
     // Don't clear anulingusRoundIndex here: the round-decision effect may have
     // already armed a NEW Anulingus for the round that just started, and wiping
     // it would silently cancel it. That effect clears stale indexes itself.
-    roundEndTakeoverRef.current = false;
+    // roundEndTakeoverRef stays set: the end-of-round check releases it.
     setPhase("playing");
   }
 
