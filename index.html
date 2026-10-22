@@ -18,29 +18,44 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script>
+  // Re-apply the saved theme before first paint (the full logic lives in applyTheme below).
+  try {
+    var __t = JSON.parse(localStorage.getItem("rico-theme-v1"));
+    if (__t && __t.vars) {
+      var __r = document.documentElement;
+      for (var __k in __t.vars) __r.style.setProperty(__k, __t.vars[__k]);
+      var __m = document.querySelector('meta[name="theme-color"]');
+      if (__m && __t.colors && __t.colors.bg) __m.setAttribute("content", __t.colors.bg);
+    }
+  } catch (e) {}
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Righteous&family=Inter:wght@400;500;600;700;800&display=swap');
   html, body {
-    margin:0; padding:0; font-family: 'Inter', sans-serif; color: #fbe9f6;
+    margin:0; padding:0; font-family: 'Inter', sans-serif; color: var(--chalk);
     background:
-      radial-gradient(circle at 20% 20%, rgba(255,45,149,0.28), transparent 42%),
-      radial-gradient(circle at 80% 30%, rgba(181,55,242,0.24), transparent 45%),
-      radial-gradient(circle at 50% 85%, rgba(41,231,255,0.14), transparent 50%),
-      #0a0510;
+      radial-gradient(circle at 20% 20%, rgba(var(--gold-rgb),0.28), transparent 42%),
+      radial-gradient(circle at 80% 30%, rgba(var(--purple-rgb),0.24), transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(var(--teal-rgb),0.14), transparent 50%),
+      var(--bg);
     background-attachment: fixed;
   }
+  /* Theme: the JS (applyTheme) overrides these base colours; everything else derives from them. */
   :root {
-    --bg: #0a0510;
-    --panel: rgba(32,14,42,0.78);
-    --panel-soft: rgba(48,20,62,0.65);
-    --line: rgba(255,45,149,0.35);
-    --chalk: #fbe9f6;
+    --bg: #0a0510;                 --bg-rgb: 10,5,16;
+    --gold: #ff2d95;               --gold-rgb: 255,45,149;
+    --gold-soft: #ff7ac2;          --gold-light: #ffb3dd;
+    --purple: #b537f2;             --purple-rgb: 181,55,242;   --purple-light: #e6b8fa;
+    --teal: #29e7ff;               --teal-rgb: 41,231,255;
+    --chalk: #fbe9f6;              --chalk-rgb: 251,233,246;
     --chalk-dim: #c48fc4;
-    --gold: #ff2d95;
-    --gold-soft: #ff7ac2;
+    --panel-rgb: 32,14,42;         --panel-soft-rgb: 48,20,62;  --deep-rgb: 17,7,23;
+    --panel: rgba(var(--panel-rgb),0.78);
+    --panel-soft: rgba(var(--panel-soft-rgb),0.65);
+    --line: rgba(var(--gold-rgb),0.35);
+    --on-accent: #fff;
     --red: #ff4d6d;
-    --teal: #29e7ff;
-    --purple: #b537f2;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -50,13 +65,13 @@
     100% { transform: scale(1); opacity: 1; }
   }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,149,0.45); }
-    50% { box-shadow: 0 0 16px 4px rgba(255,45,149,0.45); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb),0.45); }
+    50% { box-shadow: 0 0 16px 4px rgba(var(--gold-rgb),0.45); }
   }
   @keyframes surpriseFlash {
-    0% { transform: scale(0.92); opacity: 0; background: rgba(255,45,149,0.4); }
+    0% { transform: scale(0.92); opacity: 0; background: rgba(var(--gold-rgb),0.4); }
     50% { transform: scale(1.03); }
-    100% { transform: scale(1); opacity: 1; background: rgba(255,45,149,0.12); }
+    100% { transform: scale(1); opacity: 1; background: rgba(var(--gold-rgb),0.12); }
   }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -74,8 +89,8 @@
     50% { box-shadow: 0 0 18px 5px rgba(224,122,109,0.5); }
   }
   @keyframes glowPulsePink {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(192,79,176,0.45); }
-    50% { box-shadow: 0 0 18px 5px rgba(192,79,176,0.5); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--purple-rgb),0.45); }
+    50% { box-shadow: 0 0 18px 5px rgba(var(--purple-rgb),0.5); }
   }
   @keyframes chainSwing {
     0%, 100% { transform: rotate(-8deg); }
@@ -111,9 +126,9 @@
     min-height: 100vh;
     min-height: 100dvh;
     background:
-      radial-gradient(circle at 20% 20%, rgba(255,45,149,0.28), transparent 42%),
-      radial-gradient(circle at 80% 30%, rgba(181,55,242,0.24), transparent 45%),
-      radial-gradient(circle at 50% 85%, rgba(41,231,255,0.14), transparent 50%),
+      radial-gradient(circle at 20% 20%, rgba(var(--gold-rgb),0.28), transparent 42%),
+      radial-gradient(circle at 80% 30%, rgba(var(--purple-rgb),0.24), transparent 45%),
+      radial-gradient(circle at 50% 85%, rgba(var(--teal-rgb),0.14), transparent 50%),
       var(--bg);
     background-size: 180% 180%, 180% 180%, 180% 180%, 100% 100%;
     animation: clubGlowDrift 16s ease-in-out infinite;
@@ -130,7 +145,7 @@
   h1 {
     font-family:'Righteous',cursive; font-weight:400; margin:0; font-size:22px;
     color: var(--gold);
-    text-shadow: 0 0 6px rgba(255,45,149,0.7), 0 0 18px rgba(255,45,149,0.4);
+    text-shadow: 0 0 6px rgba(var(--gold-rgb),0.7), 0 0 18px rgba(var(--gold-rgb),0.4);
     letter-spacing: 0.02em;
   }
   .title-row { display:flex; align-items:center; gap:8px; }
@@ -144,7 +159,7 @@
     padding:18px;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 0 0 1px rgba(255,45,149,0.08), 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(255,45,149,0.12);
+    box-shadow: 0 0 0 1px rgba(var(--gold-rgb),0.08), 0 8px 32px rgba(0,0,0,0.5), 0 0 24px rgba(var(--gold-rgb),0.12);
   }
   .field { margin-bottom:16px; }
   .field label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color: var(--chalk-dim); margin-bottom:7px; }
@@ -152,15 +167,15 @@
   .checkbox-field input { width:18px; height:18px; accent-color: var(--gold); }
 
   .features-panel {
-    background: rgba(255,45,149,0.05);
-    border: 1px solid rgba(255,45,149,0.25);
+    background: rgba(var(--gold-rgb),0.05);
+    border: 1px solid rgba(var(--gold-rgb),0.25);
     border-radius: 16px;
     padding: 16px 16px 4px;
     margin-bottom: 16px;
   }
   .features-panel-title {
     font-family: 'Righteous'; font-size: 14px; color: var(--gold); margin-bottom: 14px;
-    text-shadow: 0 0 8px rgba(255,45,149,0.5);
+    text-shadow: 0 0 8px rgba(var(--gold-rgb),0.5);
   }
   .features-panel .field:last-child { margin-bottom: 12px; }
   .features-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
@@ -191,9 +206,9 @@
   }
   .edit-modal {
     width:100%; max-width:420px; max-height:88vh; display:flex; flex-direction:column;
-    background: linear-gradient(160deg, rgba(30,11,38,0.98), rgba(17,7,23,0.99));
+    background: linear-gradient(160deg, rgba(var(--panel-rgb),0.98), rgba(var(--deep-rgb),0.99));
     border:1px solid var(--line); border-radius:18px;
-    box-shadow: 0 18px 60px rgba(0,0,0,0.6), 0 0 30px rgba(255,45,149,0.15);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6), 0 0 30px rgba(var(--gold-rgb),0.15);
     animation: popupCardIn 0.35s cubic-bezier(.34,1.56,.64,1);
   }
   .edit-modal-head { display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line); }
@@ -206,7 +221,7 @@
   .adjust-row { display:flex; align-items:center; gap:10px; }
   .adjust-name { flex:1; font-size:13px; color: var(--chalk); }
   .adjust-input { width:110px !important; text-align:center; }
-  .duel-preview { margin-top:10px; padding:8px 10px; border-radius:10px; background: rgba(181,55,242,0.12); border:1px solid rgba(181,55,242,0.35); color:#e6b8fa; text-align:center; }
+  .duel-preview { margin-top:10px; padding:8px 10px; border-radius:10px; background: rgba(var(--purple-rgb),0.12); border:1px solid rgba(var(--purple-rgb),0.35); color:var(--purple-light); text-align:center; }
 
   .stepper { display:flex; align-items:center; gap:14px; }
   .stepper button { background: var(--panel-soft); color: var(--chalk); border:1px solid var(--line); width:38px; height:38px; border-radius:10px; font-size:18px; }
@@ -217,14 +232,30 @@
 
   .custom-chance-field { margin-bottom: 4px; }
   .custom-chance-controls {
-    background: rgba(255,45,149,0.06);
-    border: 1px solid rgba(255,45,149,0.2);
+    background: rgba(var(--gold-rgb),0.06);
+    border: 1px solid rgba(var(--gold-rgb),0.2);
     border-radius: 12px;
     padding: 10px 12px 4px;
     margin-top: 6px;
   }
   .custom-chance-row { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
   .custom-chance-label { font-size: 12.5px; color: var(--chalk); }
+  .ambiance-block { margin: 2px 0 14px; }
+  .ambiance-label, .theme-label { font-size:12px; color: var(--chalk-dim); margin:0 0 6px; }
+  .ambiance-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .ambiance-chip { display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:12px; padding:8px 10px; font-weight:600; font-size:13.5px; cursor:pointer; }
+  .ambiance-chip.active { border-color: var(--gold); box-shadow: 0 0 14px rgba(var(--gold-rgb),0.45); background: rgba(var(--gold-rgb),0.14); }
+  .ambiance-icon { font-size:18px; }
+  .ambiance-desc { font-size:11.5px; color: var(--chalk-dim); line-height:1.45; margin:8px 0 0; min-height:16px; }
+  .theme-swatches { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:10px; }
+  .theme-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; min-height:56px; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:12px; padding:8px 6px; font-size:12px; font-weight:600; cursor:pointer; }
+  .theme-chip.active { border-color: var(--gold); box-shadow: 0 0 14px rgba(var(--gold-rgb),0.45); }
+  .theme-dots { display:flex; gap:4px; }
+  .theme-dot { width:14px; height:14px; border-radius:50%; border:1px solid rgba(255,255,255,0.28); }
+  .theme-pickers { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; }
+  .theme-picker { display:flex; align-items:center; justify-content:space-between; gap:8px; background: var(--panel-soft); border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:12px; }
+  .theme-picker input[type=color] { width:38px; height:32px; border:none; padding:0; background:none; cursor:pointer; }
+  .theme-actions { display:flex; gap:8px; margin-top:10px; }
   .custom-chance-hint { font-size: 10.5px; color: var(--chalk-dim); line-height: 1.4; margin: 0 0 8px; }
 
   .names-grid { display:flex; flex-direction:column; gap:8px; }
@@ -234,31 +265,31 @@
   .drag-handle { flex:0 0 auto; background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:10px; width:44px; min-height:44px; font-size:20px; line-height:1; padding:0; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
   .drag-handle:active { cursor:grabbing; }
   .name-row { border-radius:12px; transition: transform .12s, box-shadow .12s, background .12s; }
-  .name-row.dragging { transform: scale(1.03); background: rgba(255,45,149,0.12); box-shadow: 0 0 16px rgba(255,45,149,0.55); position:relative; z-index:2; }
+  .name-row.dragging { transform: scale(1.03); background: rgba(var(--gold-rgb),0.12); box-shadow: 0 0 16px rgba(var(--gold-rgb),0.55); position:relative; z-index:2; }
   .name-row.dragging .drag-handle { color: var(--gold); border-color: var(--gold); cursor:grabbing; }
   .order-hint { color: var(--chalk-dim); font-size:12px; margin:8px 0 0; }
   input:not([type="checkbox"]) { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:10px; padding:12px 11px; font-family:'Inter'; font-size:16px; outline:none; width:100%; min-height:44px; }
-  input:not([type="checkbox"]):focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(255,45,149,0.25); }
+  input:not([type="checkbox"]):focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(var(--gold-rgb),0.25); }
   input::placeholder { color: var(--chalk-dim); }
 
   .starter-row { display:flex; flex-wrap:wrap; gap:7px; }
   .starter-chip { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); padding:8px 12px; border-radius:999px; font-size:13px; }
-  .starter-chip.active { background: var(--gold); color:#2a0a1c; border-color: var(--gold); font-weight:600; box-shadow: 0 0 12px rgba(255,45,149,0.6); }
+  .starter-chip.active { background: var(--gold); color:#2a0a1c; border-color: var(--gold); font-weight:600; box-shadow: 0 0 12px rgba(var(--gold-rgb),0.6); }
 
   .error { color: var(--red); font-size:13px; margin-bottom:12px; }
 
   .primary-btn {
     background: linear-gradient(135deg, var(--gold), var(--purple));
-    color:#fff; border:none; border-radius:14px; padding:14px; font-weight:700; font-size:15px;
+    color: var(--on-accent); border:none; border-radius:14px; padding:14px; font-weight:700; font-size:15px;
     display:flex; align-items:center; justify-content:center; gap:8px; flex:1; min-height:48px;
-    box-shadow: 0 0 0 1px rgba(255,45,149,0.3), 0 4px 18px rgba(255,45,149,0.45), 0 0 22px rgba(181,55,242,0.3);
+    box-shadow: 0 0 0 1px rgba(var(--gold-rgb),0.3), 0 4px 18px rgba(var(--gold-rgb),0.45), 0 0 22px rgba(var(--purple-rgb),0.3);
     text-shadow: 0 1px 2px rgba(0,0,0,0.35);
   }
   .primary-btn:disabled { background: var(--panel-soft); color: var(--chalk-dim); opacity:0.6; box-shadow:none; text-shadow:none; }
   .primary-btn.shake { animation: shake 0.4s ease; }
   .boost-lock-note { font-size:11px; color:#e07a5f; text-align:center; padding:4px 6px; margin-bottom:8px; }
   .boost-lock-note.general { color:var(--gold); font-weight:700; }
-  .boost-lock-note.surprise { color:var(--gold); font-weight:700; background: rgba(255,45,149,0.12); border-radius:8px; animation: surpriseFlash 0.5s ease; }
+  .boost-lock-note.surprise { color:var(--gold); font-weight:700; background: rgba(var(--gold-rgb),0.12); border-radius:8px; animation: surpriseFlash 0.5s ease; }
   .giclette-info {
     display:flex; align-items:center; gap:8px; font-size:11.5px; font-weight:600; text-align:left;
     padding:7px 10px; margin-bottom:8px; border-radius:10px;
@@ -277,7 +308,7 @@
   .ghost-btn { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk-dim); border-radius:8px; padding:7px 9px; }
 
   .banner { margin-bottom:10px; padding:10px 12px; border-radius:12px; font-size:12.5px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .banner.gold { background: rgba(255,45,149,0.14); border:1px solid var(--gold); box-shadow: 0 0 14px rgba(255,45,149,0.2); }
+  .banner.gold { background: rgba(var(--gold-rgb),0.14); border:1px solid var(--gold); box-shadow: 0 0 14px rgba(var(--gold-rgb),0.2); }
   .banner.warn { background: rgba(224,122,109,0.14); border:1px solid var(--red); }
 
   .round-event-chip {
@@ -294,7 +325,7 @@
     animation: bannerPop 0.35s ease;
   }
   .round-event-chip.gold {
-    background: rgba(255,45,149,0.16); border:1px solid var(--gold); color: var(--gold);
+    background: rgba(var(--gold-rgb),0.16); border:1px solid var(--gold); color: var(--gold);
     animation: bannerPop 0.35s ease, glowPulse 2s ease-in-out infinite;
   }
   .round-event-chip.red {
@@ -302,12 +333,12 @@
     animation: bannerPop 0.35s ease, glowPulseRed 2s ease-in-out infinite;
   }
   .round-event-chip.purple {
-    background: rgba(181,55,242,0.18); border:1px solid var(--purple); color:#e6b8fa;
+    background: rgba(var(--purple-rgb),0.18); border:1px solid var(--purple); color:var(--purple-light);
     animation: bannerPop 0.35s ease, glowPulsePink 2s ease-in-out infinite;
   }
 
   .banner.gangbang-result {
-    background: rgba(181,55,242,0.14); border:1px solid var(--purple); color:#e6b8fa; font-weight:600;
+    background: rgba(var(--purple-rgb),0.14); border:1px solid var(--purple); color:var(--purple-light); font-weight:600;
     justify-content:center; text-align:center; animation: bannerPop 0.4s ease;
   }
   .banner-actions { margin-left:auto; display:flex; gap:6px; }
@@ -316,7 +347,7 @@
 
   .player-strip { display:flex; gap:8px; overflow-x:auto; margin-bottom:12px; padding-bottom:4px; }
   .player-card { background: var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px 12px; min-width:88px; flex-shrink:0; backdrop-filter: blur(10px); }
-  .player-card.current { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(255,45,149,0.5); }
+  .player-card.current { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 16px rgba(var(--gold-rgb),0.5); }
   .player-card.boosted { border-color: #e07a5f; }
   .player-name { font-size:11px; color: var(--chalk-dim); }
   .player-score { font-family:'Righteous'; font-size:19px; letter-spacing:0.01em; }
@@ -325,7 +356,7 @@
   .boost-tag { margin-left:8px; font-size:11px; color:#e07a5f; font-weight:700; }
   .boost-tag.partouze {
     display:inline-block; font-weight:700;
-    background: linear-gradient(90deg, var(--gold), #ffb3dd, var(--gold));
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
     background-size: 220% 100%;
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     animation: bannerPop 0.4s ease, shimmerSweep 2.4s linear infinite;
@@ -341,7 +372,7 @@
   .pip.on { color: var(--gold); }
   .pip.off { color: rgba(245,243,234,0.2); }
 
-  .turn-card { background: var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; backdrop-filter: blur(12px); box-shadow: 0 0 24px rgba(255,45,149,0.08); }
+  .turn-card { background: var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; backdrop-filter: blur(12px); box-shadow: 0 0 24px rgba(var(--gold-rgb),0.08); }
   .turn-head { font-family:'Righteous'; font-size:17px; display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
   .defense-badge { font-family:'Inter'; font-size:10.5px; background: var(--teal); color:#0d2a26; padding:3px 8px; border-radius:999px; display:flex; align-items:center; gap:4px; }
 
@@ -361,7 +392,7 @@
   .ct-rowhead { background: var(--panel-soft); border-radius:8px; height:40px; color: var(--gold); font-size:18px; }
   .ct-empty { height:40px; }
   .ct-btn { height:40px; border-radius:8px; background: var(--panel-soft); border:1px solid var(--line); color: var(--gold); font-size:15px; font-family:'Righteous'; letter-spacing:0.01em; transition: box-shadow 0.15s; }
-  .ct-btn:not(.ct-disabled):active { box-shadow: 0 0 10px rgba(255,45,149,0.6); }
+  .ct-btn:not(.ct-disabled):active { box-shadow: 0 0 10px rgba(var(--gold-rgb),0.6); }
   .ct-btn.ct-disabled { opacity:0.3; color: var(--chalk-dim); }
   .ct-suites { display:flex; gap:6px; margin-top:6px; }
   .suite-chip { flex:1; }
@@ -376,7 +407,7 @@
   .chip-disabled .chip-points { color: var(--chalk-dim); }
 
   .turn-breakdown { display:flex; flex-wrap:wrap; gap:5px; margin: 2px 0 10px; }
-  .combo-tag { background: rgba(232,196,104,0.14); border:1px solid var(--gold); color: var(--chalk); border-radius:999px; padding:4px 9px; font-size:11px; }
+  .combo-tag { background: rgba(var(--gold-rgb),0.14); border:1px solid var(--gold); color: var(--chalk); border-radius:999px; padding:4px 9px; font-size:11px; }
   .combo-tag b { color: var(--gold); }
   .combo-tag.small { padding:3px 7px; font-size:10.5px; background: var(--panel-soft); border-color: var(--line); }
 
@@ -433,7 +464,7 @@
   .trophy { font-size:36px; margin-bottom:6px; }
   .ranking { margin:16px 0; display:flex; flex-direction:column; gap:7px; }
   .rank-row { display:flex; gap:10px; align-items:center; background: var(--panel-soft); border-radius:10px; padding:8px 12px; border:1px solid var(--line); }
-  .rank-row.win { border-color: var(--gold); box-shadow: 0 0 16px rgba(255,45,149,0.4); }
+  .rank-row.win { border-color: var(--gold); box-shadow: 0 0 16px rgba(var(--gold-rgb),0.4); }
   .rank-row.lose { border-color: var(--red); background: rgba(224,122,109,0.10); }
   .rank-pos { color: var(--chalk-dim); min-width:14px; }
   .rank-name { font-weight:600; flex:1; text-align:left; }
@@ -448,7 +479,7 @@
 
   .chart-wrap { margin:6px 0 4px; background: var(--panel-soft); border:1px solid var(--line); border-radius:12px; padding:10px 8px 10px; }
   .score-chart { width:100%; height:auto; display:block; }
-  .chart-grid { stroke: rgba(251,233,246,0.12); stroke-width:1; }
+  .chart-grid { stroke: rgba(var(--chalk-rgb),0.12); stroke-width:1; }
   .chart-axis { fill: var(--chalk-dim); font-size:10px; font-family:'Inter',sans-serif; }
   .chart-target { stroke: var(--gold); stroke-width:1.2; stroke-dasharray:5 4; opacity:0.85; }
   .chart-target-label { fill: var(--gold); font-size:10px; font-weight:700; font-family:'Inter',sans-serif; }
@@ -480,29 +511,29 @@
     text-align: center;
     border: 2px solid transparent;
     background:
-      linear-gradient(160deg, rgba(30,11,38,0.98), rgba(17,7,23,0.99)) padding-box,
+      linear-gradient(160deg, rgba(var(--panel-rgb),0.98), rgba(var(--deep-rgb),0.99)) padding-box,
       linear-gradient(115deg, var(--gold), var(--purple), var(--teal), var(--gold)) border-box;
     background-size: 100% 100%, 320% 100%;
-    box-shadow: 0 18px 60px rgba(0,0,0,0.55), 0 0 40px rgba(255,45,149,0.18);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.55), 0 0 40px rgba(var(--gold-rgb),0.18);
     animation: popupCardIn 0.45s cubic-bezier(.34,1.56,.64,1), popupBorderShift 6s linear infinite;
   }
   .event-popup-emoji {
     font-size: 54px; line-height: 1; margin-bottom: 10px;
     animation: popupEmojiPulse 1.1s ease-in-out infinite;
-    filter: drop-shadow(0 0 14px rgba(255,45,149,0.7));
+    filter: drop-shadow(0 0 14px rgba(var(--gold-rgb),0.7));
   }
   .event-popup-title {
     font-family: 'Righteous'; font-size: 21px; margin-bottom: 12px; line-height: 1.25;
     color: var(--gold);
-    text-shadow: 0 0 8px rgba(255,45,149,0.8), 0 0 22px rgba(255,45,149,0.5);
+    text-shadow: 0 0 8px rgba(var(--gold-rgb),0.8), 0 0 22px rgba(var(--gold-rgb),0.5);
   }
   .event-popup-card.theme-red .event-popup-title { color: var(--red); text-shadow: 0 0 8px rgba(255,77,109,0.8), 0 0 22px rgba(255,77,109,0.5); }
-  .event-popup-card.theme-purple .event-popup-title { color: var(--purple); text-shadow: 0 0 8px rgba(181,55,242,0.8), 0 0 22px rgba(181,55,242,0.5); }
+  .event-popup-card.theme-purple .event-popup-title { color: var(--purple); text-shadow: 0 0 8px rgba(var(--purple-rgb),0.8), 0 0 22px rgba(var(--purple-rgb),0.5); }
   .event-popup-message { font-size: 13.5px; color: var(--chalk); opacity:0.92; line-height:1.5; margin-bottom: 20px; }
   .event-popup-btn {
     width: 100%; border: none; border-radius: 12px; padding: 13px; font-weight: 700; font-size: 14px;
     background: linear-gradient(135deg, var(--gold), var(--purple)); color: #fff;
-    box-shadow: 0 0 18px rgba(255,45,149,0.5);
+    box-shadow: 0 0 18px rgba(var(--gold-rgb),0.5);
     letter-spacing: 0.03em; text-transform: uppercase;
   }
 </style>
@@ -579,6 +610,122 @@ function getExtraCombos(diceCount) {
   if (SHORT_STRAIGHTS[diceCount]) combos.push(...SHORT_STRAIGHTS[diceCount]);
   return combos;
 }
+
+// ------------------------------------------------------------------ theme
+const THEME_KEY = "rico-theme-v1";
+const THEME_PRESETS = [
+  { id: "neon", name: "Néon", colors: { bg: "#0a0510", gold: "#ff2d95", purple: "#b537f2", teal: "#29e7ff", chalk: "#fbe9f6" } },
+  { id: "glacier", name: "Glacier", colors: { bg: "#040b14", gold: "#3dc8ff", purple: "#5b6cff", teal: "#7dffe0", chalk: "#e6f6ff" } },
+  { id: "acide", name: "Acide", colors: { bg: "#060a02", gold: "#b6ff1a", purple: "#19e68c", teal: "#ffe600", chalk: "#f3ffd9" } },
+  { id: "sunset", name: "Sunset", colors: { bg: "#120504", gold: "#ff7a1a", purple: "#ff2e63", teal: "#ffd166", chalk: "#fff0e3" } },
+  { id: "bonbon", name: "Bonbon", colors: { bg: "#0f0614", gold: "#ff6ec7", purple: "#9d6bff", teal: "#6bffd8", chalk: "#fff0fa" } },
+  { id: "minuit", name: "Minuit", colors: { bg: "#07070b", gold: "#e4e4ee", purple: "#8a8fb0", teal: "#a9b4d6", chalk: "#f4f4f8" } },
+];
+const THEME_FIELDS = [
+  ["bg", "Fond"],
+  ["gold", "Accent principal"],
+  ["purple", "Accent 2"],
+  ["teal", "Accent 3"],
+  ["chalk", "Texte"],
+];
+const DEFAULT_THEME = THEME_PRESETS[0].colors;
+
+function sameColors(a, b) {
+  return THEME_FIELDS.every(([k]) => String(a[k]).toLowerCase() === String(b[k]).toLowerCase());
+}
+function isHex(v) {
+  return typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v);
+}
+function hexToRgb(hx) {
+  return [1, 3, 5].map((i) => parseInt(hx.slice(i, i + 2), 16));
+}
+function rgbToHex(rgb) {
+  return "#" + rgb.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+}
+function mixRgb(a, b, t) {
+  return a.map((v, i) => Math.round(v + (b[i] - v) * t));
+}
+function lum(rgb) {
+  return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+}
+
+// Everything the UI needs, derived from the 5 base colours. The default (Néon) theme returns the
+// exact original values so nothing changes visually until the user picks another theme.
+function deriveTheme(c) {
+  const j = (a) => a.join(",");
+  const bg = hexToRgb(c.bg), gold = hexToRgb(c.gold), purple = hexToRgb(c.purple);
+  const teal = hexToRgb(c.teal), chalk = hexToRgb(c.chalk);
+  const white = [255, 255, 255];
+  const isDefault = sameColors(c, DEFAULT_THEME);
+  const panel = isDefault ? [32, 14, 42] : mixRgb(bg, purple, 0.13);
+  const panelSoft = isDefault ? [48, 20, 62] : mixRgb(bg, purple, 0.2);
+  const deep = isDefault ? [17, 7, 23] : mixRgb(bg, purple, 0.05);
+  const dim = isDefault ? [196, 143, 196] : mixRgb(mixRgb(chalk, purple, 0.25), bg, 0.2);
+  const goldSoft = isDefault ? [255, 122, 194] : mixRgb(gold, white, 0.35);
+  const goldLight = isDefault ? [255, 179, 221] : mixRgb(gold, white, 0.65);
+  const purpleLight = isDefault ? [230, 184, 250] : mixRgb(purple, white, 0.6);
+  const onAccent = (lum(gold) + lum(purple)) / 2 > 0.62 ? "#12060f" : "#ffffff";
+  const vars = {
+    "--bg": c.bg, "--bg-rgb": j(bg),
+    "--gold": c.gold, "--gold-rgb": j(gold), "--gold-soft": rgbToHex(goldSoft), "--gold-light": rgbToHex(goldLight),
+    "--purple": c.purple, "--purple-rgb": j(purple), "--purple-light": rgbToHex(purpleLight),
+    "--teal": c.teal, "--teal-rgb": j(teal),
+    "--chalk": c.chalk, "--chalk-rgb": j(chalk), "--chalk-dim": rgbToHex(dim),
+    "--panel-rgb": j(panel), "--panel-soft-rgb": j(panelSoft), "--deep-rgb": j(deep),
+    "--on-accent": onAccent,
+  };
+  // palette for the canvas (shared image)
+  const P = {
+    bg: c.bg, bgRgb: j(bg), gold: c.gold, goldRgb: j(gold), purple: c.purple, purpleRgb: j(purple),
+    teal: c.teal, tealRgb: j(teal), chalk: c.chalk, chalkRgb: j(chalk), dim: rgbToHex(dim),
+    panelSoftRgb: j(panelSoft),
+  };
+  return { vars, P, isDefault };
+}
+
+function applyTheme(colors) {
+  const d = deriveTheme(colors);
+  const root = document.documentElement;
+  Object.keys(d.vars).forEach((k) => {
+    if (d.isDefault) root.style.removeProperty(k);
+    else root.style.setProperty(k, d.vars[k]);
+  });
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", colors.bg);
+  CHART_COLORS[0] = colors.gold;
+  CHART_COLORS[1] = colors.teal;
+  CHART_COLORS[2] = colors.purple;
+  try {
+    localStorage.setItem(THEME_KEY, JSON.stringify({ colors, vars: d.isDefault ? {} : d.vars }));
+  } catch (e) {}
+  return d;
+}
+
+function loadTheme() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(THEME_KEY));
+    if (saved && saved.colors && THEME_FIELDS.every(([k]) => isHex(saved.colors[k]))) return { ...saved.colors };
+  } catch (e) {}
+  return { ...DEFAULT_THEME };
+}
+
+// ------------------------------------------------------------------ ambiances (Mode Partouze presets)
+const AMBIANCE_KEYS = [
+  "partoozeIndividual", "partoozeGeneral", "gicletteIndividual", "gicletteGeneral",
+  "petiteBiteEnabled", "duelEnabled", "gangbangEnabled", "tournanteEnabled", "anulingusEnabled",
+];
+const AMBIANCES = [
+  { id: "classique", icon: "🎲", label: "Classique", on: [], chance: null,
+    desc: "Aucune surprise : juste les dés et les points." },
+  { id: "soft", icon: "🙂", label: "Soft",
+    on: ["partoozeIndividual", "partoozeGeneral", "gicletteIndividual", "duelEnabled"],
+    chance: { round: 10, turn: 10 },
+    desc: "Surprises légères et rares : Grosse Bite, Giclette et Duel (10 % par manche et par tour)." },
+  { id: "soiree", icon: "🎉", label: "Soirée", on: AMBIANCE_KEYS, chance: null,
+    desc: "Toutes les surprises, avec les probabilités par défaut." },
+  { id: "chaos", icon: "😈", label: "Chaos", on: AMBIANCE_KEYS, chance: { round: 30, turn: 25 },
+    desc: "Toutes les surprises, très fréquentes : 30 % par manche et 25 % par tour." },
+];
 
 const CHART_COLORS = ["#ff2d95", "#29e7ff", "#b537f2", "#ffd166", "#7cfc9a", "#ff8c42", "#8fa8ff", "#ffffff"];
 
@@ -720,7 +867,7 @@ function fitText(ctx, text, maxW) {
 }
 
 // Draws the results (podium, score curves, stats) to a PNG for sharing.
-async function renderShareImage(R, target) {
+async function renderShareImage(R, target, TH) {
   try {
     if (document.fonts && document.fonts.ready) await document.fonts.ready;
   } catch (e) {}
@@ -753,7 +900,7 @@ async function renderShareImage(R, target) {
   canvas.height = H;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#0a0510";
+  ctx.fillStyle = TH.bg;
   ctx.fillRect(0, 0, W, H);
   const glow = (cx, cy, r, color) => {
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
@@ -762,9 +909,9 @@ async function renderShareImage(R, target) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   };
-  glow(W * 0.2, H * 0.08, 700, "rgba(255,45,149,0.28)");
-  glow(W * 0.85, H * 0.2, 640, "rgba(181,55,242,0.24)");
-  glow(W * 0.5, H * 0.95, 760, "rgba(41,231,255,0.14)");
+  glow(W * 0.2, H * 0.08, 700, `rgba(${TH.goldRgb},0.28)`);
+  glow(W * 0.85, H * 0.2, 640, `rgba(${TH.purpleRgb},0.24)`);
+  glow(W * 0.5, H * 0.95, 760, `rgba(${TH.tealRgb},0.14)`);
 
   // header
   ctx.textAlign = "center";
@@ -773,13 +920,13 @@ async function renderShareImage(R, target) {
   ctx.fillStyle = "#ffffff";
   ctx.fillText("🏆", W / 2, 130);
   ctx.font = "58px " + FT;
-  ctx.fillStyle = "#ff2d95";
-  ctx.shadowColor = "rgba(255,45,149,0.7)";
+  ctx.fillStyle = TH.gold;
+  ctx.shadowColor = `rgba(${TH.goldRgb},0.7)`;
   ctx.shadowBlur = 24;
   ctx.fillText(fitText(ctx, `${R.winnerNames.join(" & ")} gagne !`, innerW), W / 2, 222);
   ctx.shadowBlur = 0;
   ctx.font = "30px " + FB;
-  ctx.fillStyle = "#c48fc4";
+  ctx.fillStyle = TH.dim;
   ctx.fillText(`avec ${R.winnerScore} points`, W / 2, 288);
 
   let y = headH;
@@ -789,20 +936,20 @@ async function renderShareImage(R, target) {
     const isWin = R.winnerIds.includes(p.id);
     const isLose = R.loserIds.includes(p.id);
     rrect(ctx, P, y, innerW, rankH, 20);
-    ctx.fillStyle = isLose ? "rgba(224,122,109,0.14)" : "rgba(48,20,62,0.7)";
+    ctx.fillStyle = isLose ? "rgba(224,122,109,0.14)" : `rgba(${TH.panelSoftRgb},0.7)`;
     ctx.fill();
     ctx.lineWidth = isWin ? 3 : 1.5;
-    ctx.strokeStyle = isWin ? "#ff2d95" : isLose ? "#ff4d6d" : "rgba(255,45,149,0.35)";
+    ctx.strokeStyle = isWin ? TH.gold : isLose ? "#ff4d6d" : `rgba(${TH.goldRgb},0.35)`;
     ctx.stroke();
     const cy = y + rankH / 2;
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = "30px " + FB;
-    ctx.fillStyle = "#c48fc4";
+    ctx.fillStyle = TH.dim;
     ctx.fillText(String(i + 1), P + 28, cy);
     ctx.textAlign = "right";
     ctx.font = "40px " + FT;
-    ctx.fillStyle = "#ff2d95";
+    ctx.fillStyle = TH.gold;
     const scoreTxt = String(p.total);
     ctx.fillText(scoreTxt, W - P - 28, cy);
     const sw = ctx.measureText(scoreTxt).width;
@@ -814,7 +961,7 @@ async function renderShareImage(R, target) {
     }
     ctx.textAlign = "left";
     ctx.font = "600 34px " + FB;
-    ctx.fillStyle = "#fbe9f6";
+    ctx.fillStyle = TH.chalk;
     ctx.fillText(fitText(ctx, p.name, rightEdge - (P + 84)), P + 84, cy);
     y += rankH + gap;
   });
@@ -824,15 +971,15 @@ async function renderShareImage(R, target) {
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
     ctx.font = "36px " + FT;
-    ctx.fillStyle = "#c48fc4";
+    ctx.fillStyle = TH.dim;
     ctx.fillText("Score par manche", P, y + 56);
     y += chartTitleH;
     const m = { l: 112, r: 46, t: 24, b: 60 };
     rrect(ctx, P, y, innerW, chartH, 20);
-    ctx.fillStyle = "rgba(48,20,62,0.55)";
+    ctx.fillStyle = `rgba(${TH.panelSoftRgb},0.55)`;
     ctx.fill();
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,45,149,0.35)";
+    ctx.strokeStyle = `rgba(${TH.goldRgb},0.35)`;
     ctx.stroke();
 
     const c = computeChart(R.curvePoints, R.players, target, innerW, chartH, m);
@@ -844,10 +991,10 @@ async function renderShareImage(R, target) {
       ctx.beginPath();
       ctx.moveTo(m.l, yy);
       ctx.lineTo(innerW - m.r, yy);
-      ctx.strokeStyle = "rgba(251,233,246,0.12)";
+      ctx.strokeStyle = `rgba(${TH.chalkRgb},0.12)`;
       ctx.lineWidth = 1;
       ctx.stroke();
-      ctx.fillStyle = "#c48fc4";
+      ctx.fillStyle = TH.dim;
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
       ctx.fillText(String(v), m.l - 12, yy);
@@ -857,18 +1004,18 @@ async function renderShareImage(R, target) {
       ctx.beginPath();
       ctx.moveTo(m.l, c.targetY);
       ctx.lineTo(innerW - m.r, c.targetY);
-      ctx.strokeStyle = "#ff2d95";
+      ctx.strokeStyle = TH.gold;
       ctx.lineWidth = 2.5;
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = "#ff2d95";
+      ctx.fillStyle = TH.gold;
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.font = "bold 22px " + FB;
       ctx.fillText(`objectif ${target}`, m.l + 10, c.targetY - 8);
     }
     ctx.font = "22px " + FB;
-    ctx.fillStyle = "#c48fc4";
+    ctx.fillStyle = TH.dim;
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
     c.xLabels.filter((l) => l.show).forEach((l) => ctx.fillText(l.label, l.x, chartH - 20));
@@ -909,7 +1056,7 @@ async function renderShareImage(R, target) {
       ctx.arc(lx + 13, ly, 11, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.fillStyle = "#fbe9f6";
+      ctx.fillStyle = TH.chalk;
       ctx.fillText(p.name, lx + 38, ly);
       lx += itemW;
     });
@@ -920,26 +1067,26 @@ async function renderShareImage(R, target) {
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.font = "36px " + FT;
-  ctx.fillStyle = "#c48fc4";
+  ctx.fillStyle = TH.dim;
   ctx.fillText("Statistiques de la partie", P, y + 56);
   y += statsTitleH;
   R.statRows.forEach((r) => {
     rrect(ctx, P, y, innerW, statH, 18);
-    ctx.fillStyle = "rgba(48,20,62,0.7)";
+    ctx.fillStyle = `rgba(${TH.panelSoftRgb},0.7)`;
     ctx.fill();
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,45,149,0.35)";
+    ctx.strokeStyle = `rgba(${TH.goldRgb},0.35)`;
     ctx.stroke();
     const cy = y + statH / 2;
     ctx.textBaseline = "middle";
     ctx.font = "25px " + FB;
     const labelW = Math.min(ctx.measureText(r.label).width, innerW * 0.5);
     ctx.textAlign = "left";
-    ctx.fillStyle = "#fbe9f6";
+    ctx.fillStyle = TH.chalk;
     ctx.fillText(fitText(ctx, r.label, labelW), P + 26, cy);
     ctx.textAlign = "right";
     ctx.font = "28px " + FT;
-    ctx.fillStyle = "#ff2d95";
+    ctx.fillStyle = TH.gold;
     ctx.fillText(fitText(ctx, r.value, innerW - 52 - labelW - 24), W - P - 26, cy);
     y += statH + gap;
   });
@@ -947,7 +1094,7 @@ async function renderShareImage(R, target) {
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
   ctx.font = "26px " + FB;
-  ctx.fillStyle = "#c48fc4";
+  ctx.fillStyle = TH.dim;
   ctx.fillText(`Le Rico · ${new Date().toLocaleDateString("fr-FR")}`, W / 2, y + 60);
 
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
@@ -1158,6 +1305,8 @@ function App() {
   const [customRoundChance, setCustomRoundChance] = useState(15);
   const [customTurnChance, setCustomTurnChance] = useState(13);
   const [setupError, setSetupError] = useState("");
+  const [themeColors, setThemeColors] = useState(loadTheme);
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
 
   const [players, setPlayers] = useState([]);
   const [turnCount, setTurnCount] = useState(0);
@@ -1375,6 +1524,45 @@ function App() {
 
   function updateDiceCount(delta) {
     setDiceCount((d) => Math.min(6, Math.max(5, d + delta)));
+  }
+
+  useEffect(() => {
+    applyTheme(themeColors);
+  }, [themeColors]);
+
+  function setThemeColor(key, value) {
+    setThemeColors((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const ambianceFlags = {
+    partoozeIndividual, partoozeGeneral, gicletteIndividual, gicletteGeneral, petiteBiteEnabled,
+    duelEnabled, gangbangEnabled, tournanteEnabled, anulingusEnabled,
+  };
+  const activeAmbiance = AMBIANCES.find(
+    (a) =>
+      AMBIANCE_KEYS.every((k) => ambianceFlags[k] === a.on.includes(k)) &&
+      (a.chance
+        ? customChanceEnabled && customRoundChance === a.chance.round && customTurnChance === a.chance.turn
+        : !customChanceEnabled)
+  );
+
+  function applyAmbiance(a) {
+    setPartoozeIndividual(a.on.includes("partoozeIndividual"));
+    setPartoozeGeneral(a.on.includes("partoozeGeneral"));
+    setGicletteIndividual(a.on.includes("gicletteIndividual"));
+    setGicletteGeneral(a.on.includes("gicletteGeneral"));
+    setPetiteBiteEnabled(a.on.includes("petiteBiteEnabled"));
+    setDuelEnabled(a.on.includes("duelEnabled"));
+    setGangbangEnabled(a.on.includes("gangbangEnabled"));
+    setTournanteEnabled(a.on.includes("tournanteEnabled"));
+    setAnulingusEnabled(a.on.includes("anulingusEnabled"));
+    if (a.chance) {
+      setCustomChanceEnabled(true);
+      setCustomRoundChance(a.chance.round);
+      setCustomTurnChance(a.chance.turn);
+    } else {
+      setCustomChanceEnabled(false);
+    }
   }
 
   function setAllPartouze(value) {
@@ -2621,7 +2809,7 @@ function App() {
       return;
     }
     let cancelled = false;
-    renderShareImage(buildResults(), target)
+    renderShareImage(buildResults(), target, deriveTheme(themeColors).P)
       .then((b) => { if (!cancelled) setShareBlob(b); })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -2752,6 +2940,27 @@ function App() {
                 </div>
               </div>
 
+              <div className="ambiance-block">
+                <p className="ambiance-label">Ambiance</p>
+                <div className="ambiance-grid">
+                  {AMBIANCES.map((a) => (
+                    <button
+                      key={a.id}
+                      className={"ambiance-chip" + (activeAmbiance && activeAmbiance.id === a.id ? " active" : "")}
+                      onClick={() => applyAmbiance(a)}
+                    >
+                      <span className="ambiance-icon">{a.icon}</span>
+                      <span>{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="ambiance-desc">
+                  {activeAmbiance
+                    ? activeAmbiance.desc
+                    : "Réglage sur mesure : tu as modifié les cases ci-dessous. Choisis une ambiance pour repartir d'un préréglage."}
+                </p>
+              </div>
+
               <div className="field">
                 <label>🎉 Grosse Bite</label>
                 <label className="checkbox-field">
@@ -2869,6 +3078,57 @@ function App() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="features-panel">
+              <div className="features-panel-head">
+                <div className="features-panel-title">🎨 Thème</div>
+                <div className="features-bulk">
+                  <button className="bulk-btn ghost" onClick={() => setShowThemeEditor((v) => !v)}>
+                    {showThemeEditor ? "Masquer" : "Personnaliser"}
+                  </button>
+                </div>
+              </div>
+              <div className="theme-swatches">
+                {THEME_PRESETS.map((t) => (
+                  <button
+                    key={t.id}
+                    className={"theme-chip" + (sameColors(t.colors, themeColors) ? " active" : "")}
+                    onClick={() => setThemeColors({ ...t.colors })}
+                  >
+                    <span className="theme-dots">
+                      {["bg", "gold", "purple", "teal"].map((k) => (
+                        <span key={k} className="theme-dot" style={{ background: t.colors[k] }} />
+                      ))}
+                    </span>
+                    {t.name}
+                  </button>
+                ))}
+              </div>
+              {showThemeEditor && (
+                <div>
+                  <div className="theme-pickers">
+                    {THEME_FIELDS.map(([key, label]) => (
+                      <label key={key} className="theme-picker">
+                        <span>{label}</span>
+                        <input
+                          type="color"
+                          value={themeColors[key]}
+                          onChange={(e) => setThemeColor(key, e.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <div className="theme-actions">
+                    <button className="bulk-btn ghost" onClick={() => setThemeColors({ ...DEFAULT_THEME })}>
+                      Réinitialiser
+                    </button>
+                  </div>
+                  <p className="custom-chance-hint">
+                    Les autres couleurs (cartes, halos, boutons) se calculent à partir de ces cinq-là. Choisis un fond sombre pour garder des textes lisibles. Ton thème est mémorisé sur cet appareil.
+                  </p>
+                </div>
+              )}
             </div>
 
             {setupError && <div className="error">{setupError}</div>}
