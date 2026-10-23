@@ -240,6 +240,79 @@
   }
   .custom-chance-row { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
   .custom-chance-label { font-size: 12.5px; color: var(--chalk); }
+  .icon-btn { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); width:44px; height:44px; border-radius:12px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .home-top { display:flex; justify-content:flex-end; }
+  .home-hero { text-align:center; margin: 0 0 26px; }
+  .home-dice { display:flex; justify-content:center; align-items:center; gap:14px; margin:6px 0 14px; }
+  .home-title { font-family:'Righteous'; font-size:50px; line-height:1.05; margin:0; color: var(--gold); text-shadow: 0 0 22px rgba(var(--gold-rgb),0.65); }
+  .home-sub { margin:6px 0 0; color: var(--chalk-dim); font-size:14px; letter-spacing:0.04em; }
+  .home-menu { display:flex; flex-direction:column; gap:12px; margin-bottom:6px; }
+  .home-btn { width:100%; min-height:60px; border-radius:16px; border:1px solid var(--line); background: var(--panel-soft); color: var(--chalk); font-size:16px; font-weight:700; cursor:pointer; padding:12px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+  .home-btn small { font-weight:500; font-size:12px; color: var(--chalk-dim); }
+  .home-btn.primary { background: linear-gradient(135deg, var(--gold), var(--purple)); color: var(--on-accent); border:none; box-shadow: 0 0 0 1px rgba(var(--gold-rgb),0.3), 0 4px 18px rgba(var(--gold-rgb),0.45), 0 0 22px rgba(var(--purple-rgb),0.3); text-shadow: 0 1px 2px rgba(0,0,0,0.35); }
+  .home-btn.resume { border-color: var(--teal); box-shadow: 0 0 14px rgba(var(--teal-rgb),0.35); }
+  .theme-modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .theme-modal { text-align:left; }
+  .wizard-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .wizard-title { flex:1; font-family:'Righteous'; font-size:22px; color: var(--gold); }
+  .wizard-count { font-size:12px; color: var(--chalk-dim); }
+  .wizard-dots { display:flex; gap:6px; }
+  .wizard-dot { width:9px; height:9px; border-radius:50%; background: rgba(var(--chalk-rgb),0.2); }
+  .wizard-dot.active { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+  .wizard-dot.done { background: rgba(var(--gold-rgb),0.6); }
+  .wizard-nav { display:flex; gap:10px; margin-top:12px; padding:10px 0 2px; position:sticky; bottom:0; z-index:5; background: linear-gradient(to top, rgba(var(--bg-rgb),0.94) 65%, rgba(var(--bg-rgb),0)); }
+  .features-panel.flat { background:none; border:none; box-shadow:none; padding:0; margin:0; }
+  .features-panel.flat .features-panel-head { margin-bottom:8px; }
+  .features-panel.flat .ambiance-label { margin:0; }
+  .hold-btn { width:100%; }
+  .wizard-nav.finish-nav { position:static; background:none; padding:0; margin:10px 0 8px; }
+  .wizard-nav .primary-btn { flex:1; width:100%; }
+  .partouze-grid { display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:12px; }
+  .partouze-grid .checkbox-field { margin:0; padding:7px 7px; gap:6px; font-size:11.5px !important; line-height:1.2; border:1px solid var(--line); border-radius:10px; background: var(--panel-soft); }
+  .partouze-grid .checkbox-field input { flex:0 0 auto; width:16px; height:16px; }
+  .game-card { background: var(--panel-soft); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; }
+  .game-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .game-date { font-size:12px; color: var(--chalk-dim); }
+  .game-status { font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; border:1px solid var(--line); color: var(--chalk-dim); }
+  .game-status.inprogress { border-color: var(--teal); color: var(--teal); }
+  .game-status.finished { border-color: var(--gold); color: var(--gold); }
+  .game-winner { font-family:'Righteous'; font-size:16px; color: var(--chalk); margin-bottom:4px; }
+  .game-players { font-size:13px; color: var(--chalk); line-height:1.4; }
+  .game-meta { font-size:11.5px; color: var(--chalk-dim); margin:4px 0 10px; }
+  .game-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .game-confirm { font-size:13px; color: var(--chalk); flex:1; }
+  .mini-btn.danger { margin-left:auto; }
+  .history-empty-state { color: var(--chalk-dim); font-size:14px; line-height:1.5; margin:8px 0 18px; }
+  .hold-card { text-align:center; }
+  .hold-text { font-size:13px; color: var(--chalk-dim); line-height:1.5; margin:8px 0 14px; }
+  .rules-card { padding-bottom:22px; }
+  .rules-h { font-family:'Righteous'; font-weight:400; font-size:20px; color: var(--gold); margin:22px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .rules-h3 { font-family:'Righteous'; font-weight:400; font-size:16px; color: var(--purple-light); margin:16px 0 8px; }
+  .rules-p { font-size:13.5px; line-height:1.55; margin:0 0 10px; }
+  .rules-p.dim { color: var(--chalk-dim); font-size:12.5px; }
+  .rules-p b, .rules-list b, .rule-card-body b { color: var(--gold-soft); }
+  .rules-list { margin:0 0 10px; padding-left:18px; font-size:13.5px; line-height:1.55; }
+  .rules-list li { margin-bottom:6px; }
+  .rules-table-wrap { overflow-x:auto; margin:8px 0 12px; }
+  .rules-table { width:100%; border-collapse:collapse; font-size:13px; text-align:center; }
+  .rules-table th { font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--chalk-dim); font-weight:700; padding:6px 4px; border-bottom:1px solid var(--line); }
+  .rules-table td { padding:6px 4px; font-family:'Righteous'; color: var(--chalk); }
+  .rules-table td.hi { color: var(--teal); }
+  .rules-table td.none { color: var(--chalk-dim); opacity:0.4; font-family:'Inter',sans-serif; }
+  .rules-table tbody tr:nth-child(odd) { background: rgba(var(--gold-rgb),0.05); }
+  .rules-table.small td { font-family:'Inter',sans-serif; }
+  .rules-suites { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:12px; }
+  .rules-suite { background: var(--panel-soft); border:1px solid var(--teal); border-radius:12px; padding:10px 6px; text-align:center; }
+  .rules-suite-label { font-size:11.5px; color: var(--chalk-dim); }
+  .rules-suite-pts { font-family:'Righteous'; font-size:20px; color: var(--teal); margin:2px 0; }
+  .rules-suite-cost { font-size:10.5px; color: var(--chalk-dim); }
+  .rule-card { background: var(--panel-soft); border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-bottom:8px; }
+  .rule-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px; }
+  .rule-card-title { font-family:'Righteous'; font-size:14.5px; color: var(--chalk); }
+  .rule-card-body { font-size:13px; line-height:1.5; color: var(--chalk); }
+  .rule-tag { font-size:9.5px; font-weight:800; letter-spacing:0.08em; padding:3px 8px; border-radius:999px; border:1px solid; white-space:nowrap; }
+  .rule-tag.secret { color: var(--purple-light); border-color: var(--purple); background: rgba(var(--purple-rgb),0.15); }
+  .rule-tag.public { color: var(--teal); border-color: var(--teal); background: rgba(var(--teal-rgb),0.12); }
   .ambiance-block { margin: 2px 0 14px; }
   .ambiance-label, .theme-label { font-size:12px; color: var(--chalk-dim); margin:0 0 6px; }
   .ambiance-grid { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
@@ -255,7 +328,7 @@
   .theme-pickers { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px; }
   .theme-picker { display:flex; align-items:center; justify-content:space-between; gap:8px; background: var(--panel-soft); border:1px solid var(--line); border-radius:10px; padding:6px 10px; font-size:12px; }
   .theme-picker input[type=color] { width:38px; height:32px; border:none; padding:0; background:none; cursor:pointer; }
-  .theme-actions { display:flex; gap:8px; margin-top:10px; }
+  .theme-actions { display:flex; gap:8px; margin:10px 0 8px; }
   .custom-chance-hint { font-size: 10.5px; color: var(--chalk-dim); line-height: 1.4; margin: 0 0 8px; }
 
   .names-grid { display:flex; flex-direction:column; gap:8px; }
@@ -486,14 +559,12 @@
   .chart-legend { display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; margin-top:8px; font-size:12px; }
   .legend-item { display:inline-flex; align-items:center; gap:6px; }
   .legend-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
-  .share-actions { display:flex; flex-direction:column; gap:8px; margin:16px 0 10px; }
-  .share-row { display:flex; gap:8px; }
-  .share-btn { flex:1; min-height:44px; padding:10px 8px; font-size:13px; border-radius:12px; color: var(--chalk); text-decoration:none; display:flex; align-items:center; justify-content:center; text-align:center; }
-  .share-btn:disabled { opacity:0.4; }
+  .share-actions { display:flex; flex-direction:column; gap:8px; margin:8px 0 6px; }
+  .results-head { display:flex; justify-content:flex-start; margin:0 0 4px; }
+  .results-back { min-height:40px; padding:8px 14px; border-radius:12px; font-size:13px; font-weight:600; color: var(--chalk); }
+  .reopen-btn { width:100%; min-height:44px; margin-top:2px; border-radius:12px; color: var(--chalk-dim); font-size:13px; }
   .share-toast { font-size:12.5px; color: var(--teal); min-height:16px; }
   .share-modal { width:100%; max-width:420px; max-height:92vh; overflow:auto; background: var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px; text-align:center; }
-  .share-img { width:100%; height:auto; border-radius:10px; display:block; }
-  .share-hint { color: var(--chalk-dim); font-size:12px; margin:8px 0; }
 
   .event-popup-overlay {
     position: fixed; inset: 0; z-index: 999;
@@ -726,6 +797,320 @@ const AMBIANCES = [
   { id: "chaos", icon: "😈", label: "Chaos", on: AMBIANCE_KEYS, chance: { round: 30, turn: 25 },
     desc: "Toutes les surprises, très fréquentes : 30 % par manche et 25 % par tour." },
 ];
+
+// ------------------------------------------------------------------ saved games (mini DB in localStorage)
+// One small index (summaries, newest first) + one record per game, so autosaving a game only rewrites
+// that game's own record. Only the 10 most recent games are kept.
+const GAMES_INDEX_KEY = "rico-games-v1";
+const GAME_KEY_PREFIX = "rico-game-v1-";
+const MAX_SAVED_GAMES = 10;
+let gameIdCounter = 0;
+
+function makeGameId() {
+  gameIdCounter += 1;
+  return `${Date.now().toString(36)}-${gameIdCounter.toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+}
+function readGamesIndex() {
+  try {
+    const list = JSON.parse(localStorage.getItem(GAMES_INDEX_KEY));
+    // always newest first, whatever order the data was written in
+    return Array.isArray(list) ? [...list].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)) : [];
+  } catch (e) {
+    return [];
+  }
+}
+function writeGamesIndex(list) {
+  try {
+    localStorage.setItem(GAMES_INDEX_KEY, JSON.stringify(list));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function readGameRecord(id) {
+  try {
+    return JSON.parse(localStorage.getItem(GAME_KEY_PREFIX + id));
+  } catch (e) {
+    return null;
+  }
+}
+function writeGameRecord(id, rec) {
+  try {
+    localStorage.setItem(GAME_KEY_PREFIX + id, JSON.stringify(rec));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function deleteGameRecord(id) {
+  try {
+    localStorage.removeItem(GAME_KEY_PREFIX + id);
+  } catch (e) {}
+  writeGamesIndex(readGamesIndex().filter((g) => g.id !== id));
+}
+function saveGameRecord(id, meta, data) {
+  const now = Date.now();
+  let index = readGamesIndex();
+  const existing = index.find((g) => g.id === id);
+  const entry = {
+    id,
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now,
+    status: meta.status,
+    summary: meta.summary,
+  };
+  index = [entry, ...index.filter((g) => g.id !== id)].sort((a, b) => b.updatedAt - a.updatedAt);
+  index.slice(MAX_SAVED_GAMES).forEach((g) => {
+    try {
+      localStorage.removeItem(GAME_KEY_PREFIX + g.id);
+    } catch (e) {}
+  });
+  index = index.slice(0, MAX_SAVED_GAMES);
+  let ok = writeGameRecord(id, data);
+  // Storage full: drop the oldest other games until this one fits.
+  while (!ok && index.length > 1) {
+    const oldest = [...index].reverse().find((g) => g.id !== id);
+    if (!oldest) break;
+    try {
+      localStorage.removeItem(GAME_KEY_PREFIX + oldest.id);
+    } catch (e) {}
+    index = index.filter((g) => g.id !== oldest.id);
+    ok = writeGameRecord(id, data);
+  }
+  writeGamesIndex(index);
+  return ok;
+}
+function fmtGameDate(ts) {
+  try {
+    return new Date(ts).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  } catch (e) {
+    return "";
+  }
+}
+
+const DIE_PIPS = {
+  1: [[0, 0]],
+  2: [[-1, 1], [1, -1]],
+  3: [[-1, 1], [0, 0], [1, -1]],
+  4: [[-1, 1], [1, 1], [-1, -1], [1, -1]],
+  5: [[-1, 1], [1, 1], [0, 0], [-1, -1], [1, -1]],
+  6: [[-1, 1], [1, 1], [-1, 0], [1, 0], [-1, -1], [1, -1]],
+};
+function DieSvg({ face, size = 40, color = "var(--gold)", rot = 0 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="-50 -50 100 100"
+      style={{ transform: `rotate(${rot}deg)`, overflow: "visible", flex: "0 0 auto" }}
+      aria-hidden="true"
+    >
+      <rect
+        x="-42" y="-42" width="84" height="84" rx="18" strokeWidth="5"
+        style={{ fill: "rgba(var(--panel-rgb),0.95)", stroke: color, filter: `drop-shadow(0 0 5px ${color})` }}
+      />
+      {DIE_PIPS[face].map(([gx, gy], i) => (
+        <circle key={i} cx={gx * 22} cy={gy * 22} r="7.5" style={{ fill: color }} />
+      ))}
+    </svg>
+  );
+}
+
+function RuleCard({ title, tag, children }) {
+  return (
+    <div className="rule-card">
+      <div className="rule-card-head">
+        <span className="rule-card-title">{title}</span>
+        {tag && <span className={"rule-tag " + (tag === "SECRET" ? "secret" : "public")}>{tag}</span>}
+      </div>
+      <div className="rule-card-body">{children}</div>
+    </div>
+  );
+}
+
+function RulesScreen({ onBack }) {
+  const rows = getComboRows(6);
+  const chances = [2, 3, 4, 5, 6, 7, 8].map((p) => ({
+    p,
+    round: Math.min(30, 15 + (p - 2) * 1.5),
+    turn: Math.min(25, 13 + (p - 2) * 1.2),
+  }));
+  const pct = (v) => `${String(Math.round(v * 10) / 10).replace(".", ",")} %`;
+  return (
+    <div className="app">
+      <div className="phone">
+        <div className="setup-card rules-card">
+          <div className="wizard-head">
+            <button className="ghost-btn" onClick={onBack} aria-label="Retour à l’accueil">←</button>
+            <div className="wizard-title">Règles du jeu</div>
+          </div>
+
+          <h2 className="rules-h">Le but du jeu</h2>
+          <p className="rules-p">
+            Atteindre le premier l’objectif : <b>3 000 points</b> par défaut, réglable avant la partie. Quand un joueur y arrive,
+            ceux qui n’ont pas encore joué dans la manche terminent leur tour pour tenter de le dépasser. À la fin de la manche,
+            <b> le meilleur total l’emporte</b>, à condition qu’il y ait toujours quelqu’un à l’objectif une fois les surprises passées.
+          </p>
+
+          <h2 className="rules-h">Matériel et mise en place</h2>
+          <ul className="rules-list">
+            <li><b>2 à 8 joueurs</b> et <b>5 ou 6 dés</b>, au choix de la table.</li>
+            <li>L’application ne lance pas les dés : elle <b>compte les points</b>, enchaîne les tours et pioche les surprises.</li>
+            <li>On règle les joueurs et leur ordre, puis l’objectif, le nombre de dés, qui commence, les joueurs Grosse bite, et enfin le Mode Partouze.</li>
+          </ul>
+
+          <h2 className="rules-h">Un tour de jeu</h2>
+          <ol className="rules-list numbered">
+            <li><b>Lance tous tes dés.</b></li>
+            <li><b>Repère les combinaisons</b> qui rapportent des points, mets-les de côté et saisis-les dans l’app. L’app t’indique combien de dés il te reste de libres.</li>
+            <li><b>Relance les dés libres</b> pour marquer davantage… ou arrête-toi là. Un même dé ne compte qu’une fois.</li>
+            <li><b>Un lancer qui ne rapporte rien ?</b> Le tour est raté : « Perdu », zéro point.</li>
+            <li><b>Valide ton tour</b> quand tu veux : les points s’ajoutent à ton total. Le bouton reste grisé tant qu’aucun score n’est saisi. Quand tous les dés sont posés, le tour s’arrête.</li>
+            <li><b>Au suivant !</b> Quand tout le monde a joué, la manche est terminée.</li>
+          </ol>
+
+          <h2 className="rules-h">Les combinaisons</h2>
+          <p className="rules-p">
+            Une ligne par face, une colonne par nombre de dés identiques. Pour les <b>1</b> et les <b>5</b>, un seul dé suffit ;
+            pour les autres faces, il en faut <b>au moins trois</b>. Partie à 6 dés :
+          </p>
+          <div className="rules-table-wrap">
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  {[1, 2, 3, 4, 5].map((k) => (
+                    <th key={k}>{k} dé{k > 1 ? "s" : ""}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.face}>
+                    <td><DieSvg face={r.face} size={24} color={r.face === 1 || r.face === 5 ? "var(--teal)" : "var(--gold)"} /></td>
+                    {[1, 2, 3, 4, 5].map((k) => (
+                      <td key={k} className={r.tiers[k] ? (r.tiers[k] >= 1000 ? "hi" : "") : "none"}>
+                        {r.tiers[k] ? String(r.tiers[k]).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") : "—"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="rules-suites">
+            {SUITES.map((s) => (
+              <div key={s.label} className="rules-suite">
+                <div className="rules-suite-label">{s.label}</div>
+                <div className="rules-suite-pts">{s.points}</div>
+                <div className="rules-suite-cost">avec {s.cost} dés</div>
+              </div>
+            ))}
+          </div>
+          <RuleCard title="Partie à 5 dés">
+            Mêmes valeurs, mais sans la colonne « 5 dés » et sans la grande suite 1-2-3-4-5-6.
+          </RuleCard>
+          <RuleCard title="Victoire immédiate">
+            Tous tes dés identiques sur <b>un seul lancer</b> (six à 6 dés, cinq à 5 dés) : tu <b>gagnes la partie sur-le-champ</b>. Un bouton de l’app l’enregistre.
+          </RuleCard>
+          <RuleCard title="Exemple de tour (6 dés)">
+            1er lancer : trois 5 (500) + un 1 (100) = <b>600</b>, il reste 2 dés. 2e lancer : un 5 = 50, soit <b>650</b>, il reste 1 dé.
+            Dernier dé : rien ? <b>Perdu</b>… ou tu t’arrêtais à 650.
+          </RuleCard>
+
+          <h2 className="rules-h">La Grosse bite</h2>
+          <RuleCard title="Joueur Grosse bite" tag="RÉGLAGE DE DÉPART">
+            Désigné avant la partie, son score est <b>doublé (×2)</b> à chaque tour, mais il doit <b>poser tous ses dés</b> avant de valider.
+            Il échappe à la Giclette, à la Petite Bite et à la Grosse Bite surprise (mais pas au Duel).
+          </RuleCard>
+          <RuleCard title="Tour Grosse bite" tag="AU CHOIX">
+            Avant de jouer, n’importe qui peut cocher « Tour grosse bite » : son score du tour est <b>doublé (×2)</b>, mais il doit <b>poser tous ses dés</b> avant de valider.
+          </RuleCard>
+
+          <h2 className="rules-h">Le Mode Partouze</h2>
+          <p className="rules-p">
+            Des <b>surprises</b> se déclenchent au hasard, sur un tour ou sur toute une manche. Chacune se coche séparément, ou on choisit une <b>ambiance</b> :
+            Classique (aucune surprise), Soft (surprises légères et rares), Soirée (toutes, probabilités par défaut) ou Chaos (toutes, très fréquentes).
+          </p>
+          <div className="rules-table-wrap">
+            <table className="rules-table small">
+              <thead>
+                <tr><th>Joueurs</th><th>Surprise de manche</th><th>Surprise de tour</th></tr>
+              </thead>
+              <tbody>
+                {chances.map((c) => (
+                  <tr key={c.p}><td>{c.p}</td><td>{pct(c.round)}</td><td>{pct(c.turn)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="rules-p dim">
+            Jamais plus d’<b>une surprise par tour</b> et d’<b>une par manche</b> : en cocher davantage répartit la même chance. Celles de manche et le Duel deviennent moins probables juste après être tombés.
+            Les pourcentages sont réglables avec le « mode sur mesure ».
+          </p>
+
+          <h3 className="rules-h3">Surprises de tour</h3>
+          <RuleCard title="Grosse Bite Surprise" tag="SECRET">
+            Le joueur ne se doute de rien : son score du tour est <b>doublé (×2)</b>, mais il <b>doit poser tous ses dés</b> avant de valider.
+            La surprise éclate quand il tente de valider avec des dés encore libres, ou après coup s’il a tout posé sans le savoir.
+          </RuleCard>
+          <RuleCard title="Petite Bite" tag="SECRET">
+            Le score du tour est <b>divisé par 2</b> (arrondi à l’inférieur) et le joueur ne l’apprend qu’<b>après avoir validé</b>.
+            Elle ne se cumule jamais avec une Grosse Bite : dès qu’un ×2 est en jeu, elle disparaît.
+          </RuleCard>
+          <RuleCard title="Giclette" tag="ANNONCÉ">
+            Un <b>seul lancer</b> de tous les dés : pas de mise de côté, pas de relance. Le joueur prend <b>toutes les combinaisons présentes</b> sur ce lancer. Si rien ne rapporte, le tour vaut 0.
+          </RuleCard>
+          <RuleCard title="Duel « Qui a la plus grosse ? »" tag="ANNONCÉ">
+            À partir de la <b>deuxième manche</b>. Le joueur désigné choisit un adversaire. Le premier joue et s’arrête quand il veut ; le second doit <b>faire mieux</b>.
+            Le perdant <b>perd l’écart de points</b> sur son score principal ; le gagnant ne gagne rien ; égalité : personne ne perd rien. Ensuite, le joueur désigné joue son tour normalement.
+          </RuleCard>
+
+          <h3 className="rules-h3">Surprises de manche</h3>
+          <RuleCard title="Grosse Bite Surprise Générale" tag="ANNONCÉ">
+            Toute la manche, <b>tout le monde</b> joue avec un score doublé (<b>×2</b>) et doit <b>poser tous ses dés</b> avant de valider.
+          </RuleCard>
+          <RuleCard title="Giclette Générale" tag="ANNONCÉ">
+            Toute la manche en mode Giclette : <b>un seul lancer</b> de tous les dés, pas de relance. Rien ne tombe ? Zéro.
+          </RuleCard>
+          <RuleCard title="GangBang" tag="ANNONCÉ">
+            Annoncé en début de manche. À la fin, <b>le ou les plus petits scores</b> de la manche paient <b>100 points à chaque joueur qui n’est pas dans les derniers</b>.
+          </RuleCard>
+          <RuleCard title="Tout le Monde S’encule !" tag="SECRET">
+            Surprise de fin de manche : <b>chaque joueur donne son score de la manche à son voisin de gauche</b>, puis les totaux sont recalculés.
+          </RuleCard>
+          <RuleCard title="Anulingus" tag="SECRET">
+            En fin de manche, un joueur <b>tiré au sort</b> peut <b>échanger son score de la manche</b> avec le joueur de son choix, ou refuser. Seul le score de la manche change de mains, pas le total.
+          </RuleCard>
+          <p className="rules-p dim">
+            Pendant une manche Grosse Bite ou Giclette générale, il n’y a ni surprise individuelle ni Duel.
+          </p>
+
+          <h2 className="rules-h">Fin de partie</h2>
+          <ol className="rules-list numbered">
+            <li><b>L’objectif est atteint.</b> Un bandeau l’annonce ; les joueurs qui n’ont pas encore joué dans la manche sont <b>en défense</b> et jouent leur dernier tour.</li>
+            <li><b>La manche se termine.</b> Les surprises de fin de manche se jouent. Aucun gagnant n’est désigné avant.</li>
+            <li><b>On compte.</b> Si <b>au moins un joueur est à l’objectif ou au-dessus</b>, même grâce à une surprise de fin de manche, <b>la partie est terminée</b> : le plus haut total gagne.</li>
+            <li><b>Sinon, on continue.</b> Si plus personne n’atteint l’objectif, <b>le dernier tour est annulé</b> et la partie reprend.</li>
+          </ol>
+          <RuleCard title="L’égalité : le départage">
+            Plusieurs joueurs à égalité en tête ? Chacun joue <b>un tour</b> (sans surprise) : le meilleur score gagne. Nouvelle égalité ? On recommence entre les ex&nbsp;æquo.
+          </RuleCard>
+
+          <h2 className="rules-h">Après la partie</h2>
+          <ul className="rules-list">
+            <li>Classement avec la <b>lanterne rouge</b>, <b>courbes de score par manche</b>, statistiques et <b>partage</b> des résultats.</li>
+            <li>Chaque partie est <b>sauvegardée</b> : les 10 dernières sont dans l’<b>Historique</b>.</li>
+            <li>Une erreur de saisie ? Le <b>crayon</b> de l’historique de la partie corrige un tour. Si la partie s’est terminée à tort, « <b>Corriger la partie</b> » la rouvre : après rectification, l’app revérifie la fin de partie et la reprend si plus personne n’est à l’objectif.</li>
+          </ul>
+          <div className="wizard-nav">
+            <button className="primary-btn" onClick={onBack}>← Accueil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CHART_COLORS = ["#ff2d95", "#29e7ff", "#b537f2", "#ffd166", "#7cfc9a", "#ff8c42", "#8fa8ff", "#ffffff"];
 
@@ -1284,7 +1669,7 @@ function computeSpecialEventStats(players, history) {
 }
 
 function App() {
-  const [phase, setPhase] = useState("setup");
+  const [phase, setPhase] = useState("home");
   const [playerCount, setPlayerCount] = useState(4);
   const [names, setNames] = useState(["", "", "", ""]);
   const [targetStr, setTargetStr] = useState("3000");
@@ -1307,6 +1692,16 @@ function App() {
   const [setupError, setSetupError] = useState("");
   const [themeColors, setThemeColors] = useState(loadTheme);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
+  const [setupStep, setSetupStep] = useState(1);
+  const [decidedTurn, setDecidedTurn] = useState(-1);
+  const [decidedRound, setDecidedRound] = useState(-1);
+  const [reopenHold, setReopenHold] = useState(null);
+  const [showTheme, setShowTheme] = useState(false);
+  const [gamesTick, setGamesTick] = useState(0);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const currentGameIdRef = useRef(null);
+  const viewOnlyRef = useRef(false);
+  const returnToRef = useRef("home");
 
   const [players, setPlayers] = useState([]);
   const [turnCount, setTurnCount] = useState(0);
@@ -1327,9 +1722,7 @@ function App() {
   // used for the score curves on the results screen.
   const [roundSnapshots, setRoundSnapshots] = useState([]);
   const [shareBlob, setShareBlob] = useState(null);
-  const [shareUrl, setShareUrl] = useState(null);
   const [shareToast, setShareToast] = useState("");
-  const [showShareImage, setShowShareImage] = useState(false);
   const [confirmInstantWin, setConfirmInstantWin] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -1613,11 +2006,36 @@ function App() {
     roundEndTakeoverRef.current = false;
     setRoundEndStage(0);
     setRoundSnapshots([]);
+    // a fresh game starts from a clean slate (nothing left over from a previous one)
+    currentGameIdRef.current = makeGameId();
+    viewOnlyRef.current = false;
+    returnToRef.current = "home";
+    setReopenHold(null);
+    setDecidedTurn(-1);
+    setDecidedRound(-1);
+    setGeneralBoostRoundSync(false);
+    setGicletteGeneralRoundSync(false);
+    setGangbangRoundIndex(null);
+    setGangbangResolved(false);
+    setGangbangResult(null);
+    setTournanteRoundIndex(null);
+    setTournanteResolved(false);
+    setAnulingusRoundIndex(null);
+    setAnulingusResolved(false);
+    setAnulingusChooserId(null);
+    setSurpriseBoost(false);
+    setGicletteActive(false);
+    setPetiteBite(false);
+    setPopupQueue([]);
+    setEditingIndex(null);
+    setDuelStep(null);
     setPhase("playing");
   }
 
   function goToSetupKeepConfig() {
     setConfirmReset(false);
+    setSetupStep(1);
+    setSetupError("");
     setPhase("setup");
   }
 
@@ -2172,6 +2590,7 @@ function App() {
     if (roundEndTakeoverRef.current) return;
     if (lastDecidedRoundRef.current === currentRoundIndex) return;
     lastDecidedRoundRef.current = currentRoundIndex;
+    setDecidedRound(currentRoundIndex);
 
     const pool = [];
     if (partoozeGeneral) pool.push("general");
@@ -2271,6 +2690,7 @@ function App() {
     if (roundEndTakeoverRef.current) return;
     if (lastDecidedTurnRef.current === turnCount) return;
     lastDecidedTurnRef.current = turnCount;
+    setDecidedTurn(turnCount);
 
     // A permanent Grosse Bite player is immune to Giclette and Petite Bite, and
     // a Grosse Bite surprise would be redundant (he's already x2) — but he stays
@@ -2386,7 +2806,7 @@ function App() {
       roundEndTakeoverRef.current = false;
       setRoundEndStage(0);
       setRoundSnapshots((prev) => [
-        ...prev,
+        ...prev.filter((sn) => sn.round !== currentRoundIndex),
         { round: currentRoundIndex, totals: Object.fromEntries(players.map((pl) => [pl.id, pl.total])) },
       ]);
       if (anyAtTarget) {
@@ -2763,15 +3183,6 @@ function App() {
     setTimeout(() => setShareToast(""), 2600);
   }
 
-  async function copyResults() {
-    try {
-      await copyToClipboard(buildShareText(buildResults()));
-      flashShareToast("📋 Résultats copiés !");
-    } catch (e) {
-      flashShareToast("Copie impossible sur cet appareil.");
-    }
-  }
-
   async function shareResults() {
     const R = buildResults();
     const text = buildShareText(R);
@@ -2805,7 +3216,6 @@ function App() {
   useEffect(() => {
     if (phase !== "finished") {
       setShareBlob(null);
-      setShowShareImage(false);
       return;
     }
     let cancelled = false;
@@ -2815,279 +3225,292 @@ function App() {
     return () => { cancelled = true; };
   }, [phase, winner]);
 
-  useEffect(() => {
-    if (!shareBlob) {
-      setShareUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(shareBlob);
-    setShareUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [shareBlob]);
+  // ---------------------------------------------------------------- saved games
+  // A snapshot holds everything needed to resume a game exactly where it was (including the
+  // surprises already drawn, so reloading can't be used to re-roll them).
+  function snapshotGame() {
+    return {
+      v: 1,
+      phase,
+      settings: {
+        playerCount, names, targetStr, startIndex, boostedIndices, diceCount,
+        flags: {
+          partoozeIndividual, partoozeGeneral, gicletteIndividual, gicletteGeneral, petiteBiteEnabled,
+          duelEnabled, gangbangEnabled, tournanteEnabled, anulingusEnabled,
+        },
+        customChanceEnabled, customRoundChance, customTurnChance,
+      },
+      players, turnCount, history, triggered, turnsLeftAfterTrigger, triggerInfo, roundSnapshots, winner,
+      roundEndStage,
+      ev: {
+        generalBoostRound, gicletteGeneralRound, gangbangRoundIndex, gangbangResolved, gangbangResult,
+        tournanteRoundIndex, tournanteResolved, anulingusRoundIndex, anulingusResolved,
+        anulingusChooserId, anulingusRoundNumber, surpriseBoost, gicletteActive, petiteBite,
+      },
+      duel: phase === "duel" ? { challengerId: duelChallengerId } : null,
+      decided: { turn: decidedTurn, round: decidedRound },
+      weights: { round: { ...roundWeightsRef.current }, turn: { ...turnWeightsRef.current } },
+      hold: reopenHold,
+    };
+  }
 
-  if (phase === "setup") {
+  function gameSummary(status) {
+    const R = status === "finished" ? buildResults() : null;
+    return {
+      players: players.map((p) => ({ name: p.name, total: p.total })),
+      winnerNames: R ? R.winnerNames : [],
+      winnerScore: R ? R.winnerScore : null,
+      rounds: R ? R.curvePoints.length - 1 : currentRoundIndex + 1,
+      target,
+      diceCount,
+      ambiance: activeAmbiance ? activeAmbiance.label : "Sur mesure",
+    };
+  }
+
+  function persistGame(status) {
+    const id = currentGameIdRef.current;
+    if (!id) return;
+    const prev = readGameRecord(id) || {};
+    const data =
+      status === "inprogress"
+        ? { state: snapshotGame(), final: null }
+        : { state: prev.state || null, final: snapshotGame() };
+    saveGameRecord(id, { status, summary: gameSummary(status) }, data);
+  }
+
+  function restoreGame(snap, opts = {}) {
+    const s = snap.settings;
+    const ev = snap.ev;
+    const hold = opts.hold !== undefined ? opts.hold : snap.hold || null;
+    const pendingHold = !!(hold && hold.pendingStage);
+    const viewOnly = !!opts.viewOnly;
+
+    setPlayerCount(s.playerCount);
+    setNames(s.names);
+    setTargetStr(s.targetStr);
+    setStartIndex(s.startIndex);
+    setBoostedIndices(s.boostedIndices);
+    setDiceCount(s.diceCount);
+    setPartoozeIndividual(s.flags.partoozeIndividual);
+    setPartoozeGeneral(s.flags.partoozeGeneral);
+    setGicletteIndividual(s.flags.gicletteIndividual);
+    setGicletteGeneral(s.flags.gicletteGeneral);
+    setPetiteBiteEnabled(s.flags.petiteBiteEnabled);
+    setDuelEnabled(s.flags.duelEnabled);
+    setGangbangEnabled(s.flags.gangbangEnabled);
+    setTournanteEnabled(s.flags.tournanteEnabled);
+    setAnulingusEnabled(s.flags.anulingusEnabled);
+    setCustomChanceEnabled(s.customChanceEnabled);
+    setCustomRoundChance(s.customRoundChance);
+    setCustomTurnChance(s.customTurnChance);
+
+    setPlayers(snap.players);
+    setTurnCount(snap.turnCount);
+    setHistory(snap.history);
+    setTriggered(snap.triggered);
+    setTurnsLeftAfterTrigger(snap.turnsLeftAfterTrigger);
+    setTriggerInfo(snap.triggerInfo);
+    setRoundSnapshots(snap.roundSnapshots);
+    setWinner(snap.winner);
+    setRoundEndStage(pendingHold ? 3 : snap.roundEndStage);
+
+    setGeneralBoostRoundSync(ev.generalBoostRound);
+    setGicletteGeneralRoundSync(ev.gicletteGeneralRound);
+    setGangbangRoundIndex(ev.gangbangRoundIndex);
+    setGangbangResolved(viewOnly ? true : ev.gangbangResolved);
+    setGangbangResult(ev.gangbangResult);
+    setTournanteRoundIndex(ev.tournanteRoundIndex);
+    setTournanteResolved(ev.tournanteResolved);
+    setAnulingusRoundIndex(ev.anulingusRoundIndex);
+    setAnulingusResolved(ev.anulingusResolved);
+    setAnulingusChooserId(ev.anulingusChooserId);
+    setAnulingusRoundNumber(ev.anulingusRoundNumber);
+    setSurpriseBoost(ev.surpriseBoost);
+    setGicletteActive(ev.gicletteActive);
+    setPetiteBite(ev.petiteBite);
+
+    lastDecidedTurnRef.current = snap.decided.turn;
+    lastDecidedRoundRef.current = snap.decided.round;
+    setDecidedTurn(snap.decided.turn);
+    setDecidedRound(snap.decided.round);
+    roundWeightsRef.current = { ...snap.weights.round };
+    turnWeightsRef.current = { ...snap.weights.turn };
+    roundEndTakeoverRef.current = pendingHold || (!hold && snap.roundEndStage !== 0);
+
+    // a restored turn always starts from scratch (the surprise for it is already decided)
+    setTurnScore(0);
+    setTurnAdds([]);
+    setPool(s.diceCount);
+    setManualInput("");
+    setManualCost("1");
+    setTurnBoost(false);
+    setRevealSurprise(false);
+    setButtonShake(false);
+    setPopupQueue([]);
+    setEditingIndex(null);
+    setConfirmInstantWin(false);
+    setConfirmReset(false);
+    if (snap.duel && !hold) {
+      setDuelChallengerId(snap.duel.challengerId);
+      setDuelOpponentId(null);
+      setDuelP1Score(null);
+      setDuelResult(null);
+      resetDuelTurnState();
+      setDuelStep("opponent");
+    } else {
+      setDuelStep(null);
+    }
+
+    currentGameIdRef.current = opts.id || null;
+    viewOnlyRef.current = viewOnly;
+    setReopenHold(hold);
+    setPhase(hold ? "playing" : snap.phase);
+  }
+
+  function resumeGame(id) {
+    const rec = readGameRecord(id);
+    if (!rec || !rec.state) return;
+    returnToRef.current = "home";
+    restoreGame(rec.state, { id });
+  }
+
+  function viewGame(id) {
+    const rec = readGameRecord(id);
+    if (!rec || !rec.final) return;
+    returnToRef.current = "history";
+    restoreGame(rec.final, { id, viewOnly: true });
+  }
+
+  // Re-open a finished game just before its ending, so a wrong entry can be corrected.
+  function reopenGame(id) {
+    const rec = readGameRecord(id);
+    if (!id || !rec || !rec.state) return;
+    const idx = readGamesIndex().find((g) => g.id === id);
+    const hold = { pendingStage: rec.state.roundEndStage > 0 ? 2 : 0 };
+    const state = { ...rec.state, hold };
+    saveGameRecord(id, { status: "inprogress", summary: idx ? idx.summary : {} }, { state, final: null });
+    restoreGame(state, { id, hold });
+  }
+
+  function releaseReopenHold() {
+    const hold = reopenHold;
+    setReopenHold(null);
+    if (hold && hold.pendingStage) {
+      // the end-of-round check runs again (takeover stays set until it is done)
+      setRoundEndStage(hold.pendingStage);
+    } else {
+      roundEndTakeoverRef.current = false;
+    }
+  }
+
+  function goHome() {
+    setConfirmReset(false);
+    setPhase("home");
+  }
+
+  function abandonGame() {
+    if (currentGameIdRef.current) deleteGameRecord(currentGameIdRef.current);
+    currentGameIdRef.current = null;
+    goHome();
+  }
+
+  function wizardNext() {
+    if (setupStep === 1) {
+      if (names.map((s) => s.trim()).some((s) => s.length === 0)) {
+        setSetupError("Donne un nom à chaque joueur.");
+        return;
+      }
+      setSetupError("");
+      setSetupStep(2);
+    } else if (setupStep === 2) {
+      if (!target || target <= 0) {
+        setSetupError("Le score à atteindre doit être supérieur à 0.");
+        return;
+      }
+      setSetupError("");
+      setSetupStep(3);
+    }
+  }
+
+  function wizardBack() {
+    setSetupError("");
+    if (setupStep === 1) setPhase("home");
+    else setSetupStep(setupStep - 1);
+  }
+
+  // Autosave the game in progress whenever it is in a consistent, resumable state.
+  useEffect(() => {
+    if (viewOnlyRef.current || !currentGameIdRef.current) return;
+    const savable =
+      phase === "playing" || phase === "anulingus" || (phase === "duel" && duelStep === "opponent");
+    if (!savable) return;
+    const consistent =
+      roundEndStage !== 0 || (decidedTurn === turnCount && decidedRound === currentRoundIndex);
+    if (!consistent) return;
+    persistGame("inprogress");
+  }, [
+    phase, players, history, turnCount, roundSnapshots, triggered, triggerInfo, roundEndStage,
+    decidedTurn, decidedRound, surpriseBoost, gicletteActive, petiteBite, generalBoostRound,
+    gicletteGeneralRound, gangbangRoundIndex, gangbangResolved, tournanteRoundIndex,
+    tournanteResolved, anulingusRoundIndex, anulingusResolved, anulingusChooserId, duelStep, reopenHold,
+  ]);
+
+  // When a game ends, keep its final state for the results screen (the last autosave stays
+  // available as the "before the end" checkpoint used to correct and resume it).
+  useEffect(() => {
+    if (phase !== "finished" || viewOnlyRef.current || !currentGameIdRef.current) return;
+    persistGame("finished");
+  }, [phase]);
+
+  if (phase === "home") {
+    const inProgress = readGamesIndex().find((g) => g.status === "inprogress");
     return (
       <div className="app">
         <div className="phone">
-          <div className="setup-card">
-            <div className="title-row">
-              <span className="title-icon">🎲</span>
-              <h1>Le Rico</h1>
+          <div className="setup-card home-card">
+            <div className="home-top">
+              <button className="icon-btn" aria-label="Thème" onClick={() => setShowTheme(true)}>🎨</button>
             </div>
-            <p className="subtitle">Configure la partie avant de lancer les dés.</p>
-
-            <div className="field">
-              <label>Nombre de joueurs</label>
-              <div className="stepper">
-                <button onClick={() => updatePlayerCount(-1)}>−</button>
-                <span>{playerCount}</span>
-                <button onClick={() => updatePlayerCount(1)}>+</button>
+            <div className="home-hero">
+              <div className="home-dice" aria-hidden="true">
+                <DieSvg face={6} size={46} color="var(--gold)" rot={-10} />
+                <DieSvg face={1} size={46} color="var(--teal)" rot={6} />
+                <DieSvg face={5} size={46} color="var(--purple)" rot={-4} />
               </div>
+              <h1 className="home-title">Le Rico</h1>
+              <p className="home-sub">Le jeu de dés de soirée</p>
             </div>
-
-            <div className="field">
-              <label>Nombre de dés (5 ou 6)</label>
-              <div className="stepper">
-                <button onClick={() => updateDiceCount(-1)}>−</button>
-                <span>{diceCount}</span>
-                <button onClick={() => updateDiceCount(1)}>+</button>
-              </div>
+            <div className="home-menu">
+              {inProgress && (
+                <button className="home-btn resume" onClick={() => resumeGame(inProgress.id)}>
+                  ▶ Reprendre la partie en cours
+                  <small>
+                    {inProgress.summary.players.map((p) => p.name).join(", ")} · manche {inProgress.summary.rounds}
+                  </small>
+                </button>
+              )}
+              <button
+                className="home-btn primary"
+                onClick={() => {
+                  setSetupStep(1);
+                  setSetupError("");
+                  setPhase("setup");
+                }}
+              >
+                🎲 Nouvelle partie
+              </button>
+              <button className="home-btn" onClick={() => setPhase("history")}>📚 Historique</button>
+              <button className="home-btn" onClick={() => setPhase("rules")}>📖 Règles du jeu</button>
             </div>
+          </div>
+        </div>
 
-            <div className="field">
-              <label>Noms des joueurs</label>
-              <div className="names-grid">
-                {names.map((nm, i) => (
-                  <div
-                    className={"name-row" + (dragIndex === i ? " dragging" : "")}
-                    key={i}
-                    ref={(el) => { rowRefs.current[i] = el; }}
-                  >
-                    <span className="name-rank">{i + 1}</span>
-                    <input
-                      value={nm}
-                      placeholder={`Joueur ${i + 1}`}
-                      onChange={(e) => {
-                        const copy = [...names];
-                        copy[i] = e.target.value;
-                        setNames(copy);
-                      }}
-                    />
-                    <button
-                      className="drag-handle"
-                      aria-label={`Déplacer ${nm.trim() || `Joueur ${i + 1}`} (glisser, ou flèches haut/bas)`}
-                      onPointerDown={(e) => startDrag(e, i)}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowUp" && i > 0) { e.preventDefault(); moveTo(i, i - 1); }
-                        if (e.key === "ArrowDown" && i < names.length - 1) { e.preventDefault(); moveTo(i, i + 1); }
-                      }}
-                    >⠿</button>
-                  </div>
-                ))}
-              </div>
-              <p className="order-hint">Glisse la poignée ⠿ pour changer l'ordre de jeu (1 = premier à jouer, sauf si tu choisis un autre joueur pour commencer).</p>
-            </div>
-
-            <div className="field">
-              <label>Score à atteindre</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="target-input"
-                value={targetStr}
-                placeholder="3000"
-                onChange={(e) => setTargetStr(e.target.value.replace(/[^0-9]/g, ""))}
-              />
-            </div>
-
-            <div className="field">
-              <label>Qui commence ?</label>
-              <div className="starter-row">
-                {names.map((nm, i) => (
-                  <button
-                    key={i}
-                    className={"starter-chip" + (startIndex === i ? " active" : "")}
-                    onClick={() => setStartIndex(i)}
-                  >
-                    {nm.trim() || `Joueur ${i + 1}`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="field">
-              <label>🍆 Grosse bite (score x2 chaque manche)</label>
-              <div className="starter-row">
-                {names.map((nm, i) => (
-                  <button
-                    key={i}
-                    className={"starter-chip boost-chip" + (boostedIndices.includes(i) ? " active" : "")}
-                    onClick={() => toggleBoostedSetup(i)}
-                  >
-                    {nm.trim() || `Joueur ${i + 1}`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="features-panel">
-              <div className="features-panel-head">
-                <div className="features-panel-title">🎲 Mode Partouze</div>
-                <div className="features-bulk">
-                  <button className="bulk-btn" onClick={() => setAllPartouze(true)}>Tout cocher</button>
-                  <button className="bulk-btn ghost" onClick={() => setAllPartouze(false)}>Tout décocher</button>
-                </div>
-              </div>
-
-              <div className="ambiance-block">
-                <p className="ambiance-label">Ambiance</p>
-                <div className="ambiance-grid">
-                  {AMBIANCES.map((a) => (
-                    <button
-                      key={a.id}
-                      className={"ambiance-chip" + (activeAmbiance && activeAmbiance.id === a.id ? " active" : "")}
-                      onClick={() => applyAmbiance(a)}
-                    >
-                      <span className="ambiance-icon">{a.icon}</span>
-                      <span>{a.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <p className="ambiance-desc">
-                  {activeAmbiance
-                    ? activeAmbiance.desc
-                    : "Réglage sur mesure : tu as modifié les cases ci-dessous. Choisis une ambiance pour repartir d'un préréglage."}
-                </p>
-              </div>
-
-              <div className="field">
-                <label>🎉 Grosse Bite</label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={partoozeIndividual}
-                    onChange={() => setPartoozeIndividual((m) => !m)}
-                  />
-                  Grosse Bite Surprise Individuelle
-                </label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={partoozeGeneral}
-                    onChange={() => setPartoozeGeneral((m) => !m)}
-                  />
-                  Grosse Bite Surprise Générale
-                </label>
-              </div>
-
-              <div className="field">
-                <label>⛓️ Giclette</label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={gicletteIndividual}
-                    onChange={() => setGicletteIndividual((m) => !m)}
-                  />
-                  Giclette Individuelle
-                </label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={gicletteGeneral}
-                    onChange={() => setGicletteGeneral((m) => !m)}
-                  />
-                  Giclette Générale
-                </label>
-              </div>
-
-              <div className="field">
-                <label>🤏 Petite Bite</label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={petiteBiteEnabled}
-                    onChange={() => setPetiteBiteEnabled((m) => !m)}
-                  />
-                  Petite Bite Surprise
-                </label>
-              </div>
-
-              <div className="field">
-                <label>🍆 Duel</label>
-                <label className="checkbox-field">
-                  <input type="checkbox" checked={duelEnabled} onChange={() => setDuelEnabled((m) => !m)} />
-                  Qui a la Plus Grosse ?
-                </label>
-              </div>
-
-              <div className="field">
-                <label>💀 Mini-jeux de manche</label>
-                <label className="checkbox-field">
-                  <input type="checkbox" checked={gangbangEnabled} onChange={() => setGangbangEnabled((m) => !m)} />
-                  GangBang
-                </label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={tournanteEnabled}
-                    onChange={() => setTournanteEnabled((m) => !m)}
-                  />
-                  Tout le Monde S'encule !
-                </label>
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={anulingusEnabled}
-                    onChange={() => setAnulingusEnabled((m) => !m)}
-                  />
-                  Anulingus
-                </label>
-              </div>
-
-              <div className="field custom-chance-field">
-                <label className="checkbox-field">
-                  <input
-                    type="checkbox"
-                    checked={customChanceEnabled}
-                    onChange={() => setCustomChanceEnabled((m) => !m)}
-                  />
-                  🎚️ Mode sur mesure (régler les probabilités moi-même)
-                </label>
-                {customChanceEnabled && (
-                  <div className="custom-chance-controls">
-                    <div className="custom-chance-row">
-                      <span className="custom-chance-label">Généraux (par manche)</span>
-                      <div className="stepper small">
-                        <button onClick={() => updateRoundChance(-5)}>−</button>
-                        <span>{customRoundChance}%</span>
-                        <button onClick={() => updateRoundChance(5)}>+</button>
-                      </div>
-                    </div>
-                    <div className="custom-chance-row">
-                      <span className="custom-chance-label">Individuels (par tour)</span>
-                      <div className="stepper small">
-                        <button onClick={() => updateTurnChance(-5)}>−</button>
-                        <span>{customTurnChance}%</span>
-                        <button onClick={() => updateTurnChance(5)}>+</button>
-                      </div>
-                    </div>
-                    <p className="custom-chance-hint">
-                      Ce pourcentage est la chance globale qu'un événement se déclenche ; il se partage ensuite équitablement entre les features cochées ci-dessus.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="features-panel">
-              <div className="features-panel-head">
+        {showTheme && (
+          <div className="edit-modal-overlay" onClick={() => setShowTheme(false)}>
+            <div className="share-modal theme-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="theme-modal-head">
                 <div className="features-panel-title">🎨 Thème</div>
-                <div className="features-bulk">
-                  <button className="bulk-btn ghost" onClick={() => setShowThemeEditor((v) => !v)}>
-                    {showThemeEditor ? "Masquer" : "Personnaliser"}
-                  </button>
-                </div>
+                <button className="edit-modal-close" aria-label="Fermer" onClick={() => setShowTheme(false)}>✕</button>
               </div>
               <div className="theme-swatches">
                 {THEME_PRESETS.map((t) => (
@@ -3105,24 +3528,21 @@ function App() {
                   </button>
                 ))}
               </div>
+              <button className="bulk-btn ghost" onClick={() => setShowThemeEditor((v) => !v)}>
+                {showThemeEditor ? "Masquer la personnalisation" : "Personnaliser"}
+              </button>
               {showThemeEditor && (
                 <div>
                   <div className="theme-pickers">
                     {THEME_FIELDS.map(([key, label]) => (
                       <label key={key} className="theme-picker">
                         <span>{label}</span>
-                        <input
-                          type="color"
-                          value={themeColors[key]}
-                          onChange={(e) => setThemeColor(key, e.target.value)}
-                        />
+                        <input type="color" value={themeColors[key]} onChange={(e) => setThemeColor(key, e.target.value)} />
                       </label>
                     ))}
                   </div>
                   <div className="theme-actions">
-                    <button className="bulk-btn ghost" onClick={() => setThemeColors({ ...DEFAULT_THEME })}>
-                      Réinitialiser
-                    </button>
+                    <button className="bulk-btn ghost" onClick={() => setThemeColors({ ...DEFAULT_THEME })}>Réinitialiser</button>
                   </div>
                   <p className="custom-chance-hint">
                     Les autres couleurs (cartes, halos, boutons) se calculent à partir de ces cinq-là. Choisis un fond sombre pour garder des textes lisibles. Ton thème est mémorisé sur cet appareil.
@@ -3130,12 +3550,316 @@ function App() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (phase === "rules") {
+    return <RulesScreen onBack={goHome} />;
+  }
+
+  if (phase === "history") {
+    const games = readGamesIndex();
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="setup-card">
+            <div className="wizard-head">
+              <button className="ghost-btn" onClick={goHome} aria-label="Retour à l’accueil">←</button>
+              <div className="wizard-title">Historique</div>
+              <span className="wizard-count">{games.length}/{MAX_SAVED_GAMES}</span>
+            </div>
+            {games.length === 0 && (
+              <p className="history-empty-state">Aucune partie enregistrée pour le moment. Les 10 dernières parties apparaîtront ici.</p>
+            )}
+            {games.map((g) => {
+              const sm = g.summary;
+              const finished = g.status === "finished";
+              const ranking = [...sm.players].sort((a, b) => b.total - a.total);
+              return (
+                <div className="game-card" key={g.id}>
+                  <div className="game-card-top">
+                    <span className="game-date">{fmtGameDate(g.updatedAt)}</span>
+                    <span className={"game-status " + g.status}>{finished ? "Terminée" : "En cours"}</span>
+                  </div>
+                  {finished && (
+                    <div className="game-winner">🏆 {sm.winnerNames.join(" & ")} — {sm.winnerScore} pts</div>
+                  )}
+                  <div className="game-players">
+                    {ranking.map((p) => `${p.name} ${p.total}`).join(" · ")}
+                  </div>
+                  <div className="game-meta">
+                    {finished ? `${sm.rounds} manche${sm.rounds > 1 ? "s" : ""}` : `manche ${sm.rounds}`} · objectif {sm.target} · {sm.diceCount} dés · {sm.ambiance}
+                  </div>
+                  {confirmDeleteId === g.id ? (
+                    <div className="game-actions">
+                      <span className="game-confirm">Supprimer cette partie ?</span>
+                      <button
+                        className="mini-btn"
+                        onClick={() => {
+                          deleteGameRecord(g.id);
+                          setConfirmDeleteId(null);
+                          setGamesTick((t) => t + 1);
+                        }}
+                      >Oui</button>
+                      <button className="mini-btn ghost" onClick={() => setConfirmDeleteId(null)}>Non</button>
+                    </div>
+                  ) : (
+                    <div className="game-actions">
+                      {finished ? (
+                        <>
+                          <button className="mini-btn" onClick={() => viewGame(g.id)}>Résultats</button>
+                          <button className="mini-btn ghost" onClick={() => reopenGame(g.id)}>✏️ Corriger</button>
+                        </>
+                      ) : (
+                        <button className="mini-btn" onClick={() => resumeGame(g.id)}>▶ Reprendre</button>
+                      )}
+                      <button className="mini-btn ghost danger" aria-label="Supprimer" onClick={() => setConfirmDeleteId(g.id)}>🗑</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <div className="wizard-nav">
+              <button className="primary-btn" onClick={goHome}>← Accueil</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "setup") {
+    const stepTitles = ["Joueurs", "Paramètres", "Mode Partouze"];
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="setup-card">
+            <div className="wizard-head">
+              <button className="ghost-btn" onClick={wizardBack} aria-label="Retour">←</button>
+              <div className="wizard-title">{stepTitles[setupStep - 1]}</div>
+              <div className="wizard-dots" aria-label={`Étape ${setupStep} sur 3`}>
+                {[1, 2, 3].map((i) => (
+                  <span key={i} className={"wizard-dot" + (i === setupStep ? " active" : i < setupStep ? " done" : "")} />
+                ))}
+              </div>
+            </div>
+
+            {setupStep === 1 && (
+              <>
+                <div className="field">
+                  <label>Nombre de joueurs</label>
+                  <div className="stepper">
+                    <button onClick={() => updatePlayerCount(-1)}>−</button>
+                    <span>{playerCount}</span>
+                    <button onClick={() => updatePlayerCount(1)}>+</button>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>Noms des joueurs</label>
+                  <div className="names-grid">
+                    {names.map((nm, i) => (
+                      <div
+                        className={"name-row" + (dragIndex === i ? " dragging" : "")}
+                        key={i}
+                        ref={(el) => { rowRefs.current[i] = el; }}
+                      >
+                        <span className="name-rank">{i + 1}</span>
+                        <input
+                          value={nm}
+                          placeholder={`Joueur ${i + 1}`}
+                          onChange={(e) => {
+                            const copy = [...names];
+                            copy[i] = e.target.value;
+                            setNames(copy);
+                          }}
+                        />
+                        <button
+                          className="drag-handle"
+                          aria-label={`Déplacer ${nm.trim() || `Joueur ${i + 1}`} (glisser, ou flèches haut/bas)`}
+                          onPointerDown={(e) => startDrag(e, i)}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp" && i > 0) { e.preventDefault(); moveTo(i, i - 1); }
+                            if (e.key === "ArrowDown" && i < names.length - 1) { e.preventDefault(); moveTo(i, i + 1); }
+                          }}
+                        >⠿</button>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="order-hint">Glisse la poignée ⠿ pour changer l'ordre de jeu (1 = premier à jouer, sauf si tu choisis un autre joueur pour commencer).</p>
+                </div>
+              </>
+            )}
+
+            {setupStep === 2 && (
+              <>
+                <div className="field">
+                  <label>Nombre de dés (5 ou 6)</label>
+                  <div className="stepper">
+                    <button onClick={() => updateDiceCount(-1)}>−</button>
+                    <span>{diceCount}</span>
+                    <button onClick={() => updateDiceCount(1)}>+</button>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>Score à atteindre</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="target-input"
+                    value={targetStr}
+                    placeholder="3000"
+                    onChange={(e) => setTargetStr(e.target.value.replace(/[^0-9]/g, ""))}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Qui commence ?</label>
+                  <div className="starter-row">
+                    {names.map((nm, i) => (
+                      <button
+                        key={i}
+                        className={"starter-chip" + (startIndex === i ? " active" : "")}
+                        onClick={() => setStartIndex(i)}
+                      >
+                        {nm.trim() || `Joueur ${i + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>🍆 Grosse bite sur toute la partie (score x2 chaque manche)</label>
+                  <div className="starter-row">
+                    {names.map((nm, i) => (
+                      <button
+                        key={i}
+                        className={"starter-chip boost-chip" + (boostedIndices.includes(i) ? " active" : "")}
+                        onClick={() => toggleBoostedSetup(i)}
+                      >
+                        {nm.trim() || `Joueur ${i + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {setupStep === 3 && (
+              <div className="features-panel flat">
+                <div className="features-panel-head">
+                  <p className="ambiance-label">Ambiance</p>
+                  <div className="features-bulk">
+                    <button className="bulk-btn" onClick={() => setAllPartouze(true)}>Tout cocher</button>
+                    <button className="bulk-btn ghost" onClick={() => setAllPartouze(false)}>Tout décocher</button>
+                  </div>
+                </div>
+
+                <div className="ambiance-block">
+                  <div className="ambiance-grid">
+                    {AMBIANCES.map((a) => (
+                      <button
+                        key={a.id}
+                        className={"ambiance-chip" + (activeAmbiance && activeAmbiance.id === a.id ? " active" : "")}
+                        onClick={() => applyAmbiance(a)}
+                      >
+                        <span className="ambiance-icon">{a.icon}</span>
+                        <span>{a.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="ambiance-desc">
+                    {activeAmbiance
+                      ? activeAmbiance.desc
+                      : "Réglage sur mesure : tu as modifié les cases ci-dessous. Choisis une ambiance pour repartir d'un préréglage."}
+                  </p>
+                </div>
+
+                <div className="partouze-grid">
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={partoozeIndividual} onChange={() => setPartoozeIndividual((m) => !m)} />
+                    Grosse Bite Surprise Individuelle
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={partoozeGeneral} onChange={() => setPartoozeGeneral((m) => !m)} />
+                    Grosse Bite Surprise Générale
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={gicletteIndividual} onChange={() => setGicletteIndividual((m) => !m)} />
+                    Giclette Individuelle
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={gicletteGeneral} onChange={() => setGicletteGeneral((m) => !m)} />
+                    Giclette Générale
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={petiteBiteEnabled} onChange={() => setPetiteBiteEnabled((m) => !m)} />
+                    Petite Bite Surprise
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={duelEnabled} onChange={() => setDuelEnabled((m) => !m)} />
+                    Qui a la Plus Grosse ?
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={gangbangEnabled} onChange={() => setGangbangEnabled((m) => !m)} />
+                    GangBang
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={tournanteEnabled} onChange={() => setTournanteEnabled((m) => !m)} />
+                    Tout le Monde S'encule !
+                  </label>
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={anulingusEnabled} onChange={() => setAnulingusEnabled((m) => !m)} />
+                    Anulingus
+                  </label>
+                </div>
+
+                <div className="field custom-chance-field">
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={customChanceEnabled} onChange={() => setCustomChanceEnabled((m) => !m)} />
+                    🎚️ Mode sur mesure (régler les probabilités moi-même)
+                  </label>
+                  {customChanceEnabled && (
+                    <div className="custom-chance-controls">
+                      <div className="custom-chance-row">
+                        <span className="custom-chance-label">Généraux (par manche)</span>
+                        <div className="stepper small">
+                          <button onClick={() => updateRoundChance(-5)}>−</button>
+                          <span>{customRoundChance}%</span>
+                          <button onClick={() => updateRoundChance(5)}>+</button>
+                        </div>
+                      </div>
+                      <div className="custom-chance-row">
+                        <span className="custom-chance-label">Individuels (par tour)</span>
+                        <div className="stepper small">
+                          <button onClick={() => updateTurnChance(-5)}>−</button>
+                          <span>{customTurnChance}%</span>
+                          <button onClick={() => updateTurnChance(5)}>+</button>
+                        </div>
+                      </div>
+                      <p className="custom-chance-hint">
+                        Ce pourcentage est la chance globale qu'un événement se déclenche ; il se partage ensuite équitablement entre les features cochées ci-dessus.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {setupError && <div className="error">{setupError}</div>}
 
-            <button className="primary-btn start-btn" onClick={startGame}>
-              Lancer la partie
-            </button>
+            <div className="wizard-nav">
+              {setupStep < 3 ? (
+                <button className="primary-btn" onClick={wizardNext}>Suivant →</button>
+              ) : (
+                <button className="primary-btn start-btn" onClick={startGame}>🎲 Lancer la partie</button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -3145,11 +3869,21 @@ function App() {
   if (phase === "finished") {
     const R = buildResults();
     const { sorted, winnerIds, winnerNames, loserIds } = R;
+    const canReopen = !!(currentGameIdRef.current && (readGameRecord(currentGameIdRef.current) || {}).state);
 
     return (
       <div className="app">
         <div className="phone">
           <div className="finished-card">
+            <div className="results-head">
+              <button
+                className="ghost-btn results-back"
+                aria-label={returnToRef.current === "history" ? "Retour à l’historique" : "Retour à l’accueil"}
+                onClick={() => setPhase(returnToRef.current === "history" ? "history" : "home")}
+              >
+                ← {returnToRef.current === "history" ? "Historique" : "Accueil"}
+              </button>
+            </div>
             <div className="trophy">🏆</div>
             <h1>{winnerNames.join(" & ")} gagne !</h1>
             <p className="subtitle">avec {R.winnerScore} points</p>
@@ -3189,43 +3923,25 @@ function App() {
               ))}
             </div>
 
+            <div className="wizard-nav finish-nav">
+              <button className="primary-btn" onClick={goToSetupKeepConfig}>🔄 Nouvelle partie</button>
+            </div>
+
             <div className="share-actions">
               <button className="primary-btn" onClick={shareResults}>
                 📤 Partager les résultats
               </button>
-              <div className="share-row">
-                <button className="ghost-btn share-btn" onClick={copyResults}>📋 Copier le texte</button>
-                <button
-                  className="ghost-btn share-btn"
-                  disabled={!shareUrl}
-                  onClick={() => setShowShareImage(true)}
-                >
-                  🖼️ Voir l'image
-                </button>
-              </div>
               <div className="share-toast" role="status">{shareToast}</div>
             </div>
 
-            <button className="primary-btn" onClick={goToSetupKeepConfig}>
-              🔄 Nouvelle partie
-            </button>
+            {canReopen && (
+              <button className="ghost-btn reopen-btn" onClick={() => reopenGame(currentGameIdRef.current)}>
+                ✏️ Corriger la partie
+              </button>
+            )}
           </div>
         </div>
 
-        {showShareImage && shareUrl && (
-          <div className="edit-modal-overlay" onClick={() => setShowShareImage(false)}>
-            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
-              <img className="share-img" src={shareUrl} alt="Résultats de la partie" />
-              <p className="share-hint">Appui long sur l'image pour l'enregistrer</p>
-              <div className="share-row">
-                <a className="ghost-btn share-btn" href={shareUrl} download="le-rico-resultats.png">
-                  ⬇️ Télécharger
-                </a>
-                <button className="primary-btn" onClick={() => setShowShareImage(false)}>Fermer</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -3392,14 +4108,15 @@ function App() {
             <span>Objectif {target}</span>
           </div>
           {!isTiebreak && <div className="topbar-right">Manche {Math.floor(turnCount / n) + 1}</div>}
-          <button className="ghost-btn" onClick={() => setConfirmReset(true)}>🔄</button>
+          <button className="ghost-btn" aria-label="Accueil" onClick={() => setConfirmReset(true)}>🏠</button>
         </div>
 
         {confirmReset && (
           <div className="banner warn">
-            Recommencer ? Les scores seront perdus.
+            Quitter la partie ? Elle est sauvegardée : tu pourras la reprendre depuis l'accueil.
             <span className="banner-actions">
-              <button className="mini-btn" onClick={goToSetupKeepConfig}>Oui</button>
+              <button className="mini-btn" onClick={goHome}>Accueil</button>
+              <button className="mini-btn ghost danger" onClick={abandonGame}>Abandonner</button>
               <button className="mini-btn ghost" onClick={() => setConfirmReset(false)}>Annuler</button>
             </span>
           </div>
@@ -3446,6 +4163,21 @@ function App() {
           })}
         </div>
 
+        {reopenHold && (
+          <div className="turn-card hold-card">
+            <div className="turn-head">
+              <span>✏️ <strong>Partie rouverte</strong></span>
+            </div>
+            <p className="hold-text">
+              Corrige les scores dans l'historique (✏️ à droite de chaque tour), puis valide pour {reopenHold.pendingStage ? "vérifier si la partie est vraiment terminée" : "reprendre la partie"}.
+            </p>
+            <button className="primary-btn hold-btn" onClick={releaseReopenHold}>
+              {reopenHold.pendingStage ? "✅ Vérifier la fin de partie" : "▶ Reprendre la partie"}
+            </button>
+          </div>
+        )}
+
+        {!reopenHold && (
         <div className="turn-card">
           <div className="turn-head">
             <span>Au tour de <strong>{activePlayer?.name}</strong></span>
@@ -3535,6 +4267,7 @@ function App() {
             </div>
           )}
         </div>
+        )}
 
         <div className="history">
           <div className="history-title">Historique</div>
@@ -3595,6 +4328,8 @@ function App() {
           </div>
         )}
 
+        {!reopenHold && (
+        <>
         <div className="footer-actions-spacer" />
         <div className="footer-actions">
           <button className="danger-btn" onClick={() => (isTiebreak ? tbBank(true) : bankTurn(true))}>
@@ -3612,6 +4347,8 @@ function App() {
             Valider le tour
           </button>
         </div>
+        </>
+        )}
       </div>
       <EventPopup popup={activePopup} onDismiss={dismissPopup} />
 
