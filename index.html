@@ -888,6 +888,13 @@ function fmtGameDate(ts) {
   }
 }
 
+// Grosse Bite multipliers never stack: whatever mix of permanent Grosse bite, announced "Tour grosse bite",
+// individual surprise or general round applies, a score is doubled once (x2 maximum).
+const MAX_MULTIPLIER = 2;
+function grosseBiteMultiplier(...flags) {
+  return flags.some(Boolean) ? MAX_MULTIPLIER : 1;
+}
+
 const DIE_PIPS = {
   1: [[0, 0]],
   2: [[-1, 1], [1, -1]],
@@ -1025,6 +1032,11 @@ function RulesScreen({ onBack }) {
           </RuleCard>
           <RuleCard title="Tour Grosse bite" tag="AU CHOIX">
             Avant de jouer, n’importe qui peut cocher « Tour grosse bite » : son score du tour est <b>doublé (×2)</b>, mais il doit <b>poser tous ses dés</b> avant de valider.
+          </RuleCard>
+
+          <RuleCard title="Pas de cumul : ×2 maximum">
+            Quelle que soit la combinaison (joueur Grosse bite, tour annoncé, surprise ou manche générale), un score n’est <b>jamais multiplié par plus de 2</b>.
+            Annoncer sa Grosse bite alors qu’une Grosse Bite surprise était déjà en jeu ne change donc rien : c’est ×2, pas ×4.
           </RuleCard>
 
           <h2 className="rules-h">Le Mode Partouze</h2>
@@ -2102,9 +2114,7 @@ function App() {
     // surprise, or a general round) cancels a Petite Bite that was rolled for
     // this turn — the two can never stack.
     const anyGrosseBite = currentPlayer.boost || turnBoost || surpriseBoost || generalBoostRound;
-    const multiplier = !bust
-      ? (currentPlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1) * (surpriseBoost ? 2 : 1)
-      : 1;
+    const multiplier = !bust ? grosseBiteMultiplier(currentPlayer.boost, turnBoost, surpriseBoost) : 1;
     const boosted = base * multiplier;
     const halved = !bust && petiteBite && !anyGrosseBite;
     const points = halved ? Math.floor(boosted / 2) : boosted;
@@ -2330,8 +2340,7 @@ function App() {
     const entry = history[index];
     if (!entry) { cancelEditEntry(); return; }
     const rawPoints = editBust ? 0 : editCombos.reduce((s, c) => s + c.points, 0);
-    const multiplier =
-      (entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1) * (entry.partoozeBoosted ? 2 : 1);
+    const multiplier = grosseBiteMultiplier(entry.boosted, entry.turnBoosted, entry.partoozeBoosted);
     const boostedPoints = rawPoints * multiplier;
     const finalPoints = editBust
       ? 0
@@ -2852,13 +2861,22 @@ function App() {
     // He used every die without ever learning he was boosted: reveal it now,
     // after the fact, so the doubled score doesn't come out of nowhere.
     if (surpriseBoost && pool === 0 && !revealSurprise) {
-      const mult = (activePlayer?.boost ? 2 : 1) * (turnBoost ? 2 : 1) * 2;
-      showPopup(
-        "gold",
-        "🎉",
-        "GROSSE BITE SURPRISE !",
-        `Sans le savoir, ${activePlayer?.name} jouait boosté x2 ce tour — et il a bien joué tous ses dés : ${turnScore} pts deviennent ${turnScore * mult} pts !`
-      );
+      if (activePlayer?.boost || turnBoost) {
+        // he had already announced his own Grosse bite: the surprise brings nothing more (x2 max)
+        showPopup(
+          "gold",
+          "🎉",
+          "GROSSE BITE SURPRISE… EN DOUBLON !",
+          `${activePlayer?.name} avait déjà annoncé sa Grosse bite : les multiplicateurs ne se cumulent pas, le score est doublé une seule fois — ${turnScore} pts deviennent ${turnScore * MAX_MULTIPLIER} pts (x2 maximum).`
+        );
+      } else {
+        showPopup(
+          "gold",
+          "🎉",
+          "GROSSE BITE SURPRISE !",
+          `Sans le savoir, ${activePlayer?.name} jouait boosté x2 ce tour — et il a bien joué tous ses dés : ${turnScore} pts deviennent ${turnScore * MAX_MULTIPLIER} pts !`
+        );
+      }
     }
     bankTurn(false);
   }
@@ -2968,14 +2986,14 @@ function App() {
   function finishDuelTurn(bust) {
     if (duelStep === "p1") {
       const player = players.find((p) => p.id === duelChallengerId);
-      const mult = player?.boost || generalBoostRound ? 2 : 1;
+      const mult = grosseBiteMultiplier(player?.boost, generalBoostRound);
       const score = bust ? 0 : duelTurnScore * mult;
       setDuelP1Score(score);
       resetDuelTurnState();
       setDuelStep("p2");
     } else if (duelStep === "p2") {
       const player = players.find((p) => p.id === duelOpponentId);
-      const mult = player?.boost || generalBoostRound ? 2 : 1;
+      const mult = grosseBiteMultiplier(player?.boost, generalBoostRound);
       const score = bust ? 0 : duelTurnScore * mult;
       resolveDuel(duelP1Score, score);
     }
@@ -4204,7 +4222,7 @@ function App() {
 
           <div className="turn-score">{turnScore} pts ce tour</div>
           {!isTiebreak && activePlayer && (() => {
-            const mult = (activePlayer.boost ? 2 : 1) * (turnBoost ? 2 : 1);
+            const mult = grosseBiteMultiplier(activePlayer.boost, turnBoost, generalBoostRound);
             return (
               <div className="turn-potential">
                 → total potentiel : <strong>{activePlayer.total + turnScore * mult}</strong>
@@ -4283,9 +4301,11 @@ function App() {
                     <span className="history-points">
                       {h.special ? h.special : h.bust ? "Perdu" : `+${h.points} pts`}
                     </span>
-                    {h.boosted && <span className="boost-tag">🍆 x2</span>}
-                    {h.turnBoosted && <span className="boost-tag">🍆 tour x2</span>}
-                    {h.partoozeGeneralRound ? (
+                    {h.boosted ? (
+                      <span className="boost-tag">🍆 x2</span>
+                    ) : h.turnBoosted ? (
+                      <span className="boost-tag">🍆 tour x2</span>
+                    ) : h.partoozeGeneralRound ? (
                       <span className="boost-tag partouze">🎊 grosse bite surprise générale x2</span>
                     ) : (
                       h.partoozeBoosted && <span className="boost-tag partouze">🎉 grosse bite surprise x2</span>
@@ -4450,7 +4470,7 @@ function App() {
                           <div className="edit-mult-note">
                             {entry.petiteBite
                               ? "🤏 Petite Bite (÷2) conservée pour ce tour"
-                              : `🍆 multiplicateur x${(entry.boosted ? 2 : 1) * (entry.turnBoosted ? 2 : 1) * (entry.partoozeBoosted ? 2 : 1)} conservé pour ce tour`}
+                              : `🍆 multiplicateur x${grosseBiteMultiplier(entry.boosted, entry.turnBoosted, entry.partoozeBoosted)} conservé pour ce tour`}
                           </div>
                         )}
 
