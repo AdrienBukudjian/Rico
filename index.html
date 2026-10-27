@@ -424,6 +424,23 @@
   .player-card.boosted { border-color: #e07a5f; }
   .player-name { font-size:11px; color: var(--chalk-dim); }
   .player-score { font-family:'Righteous'; font-size:19px; letter-spacing:0.01em; }
+  .turn-options { display:flex; align-items:stretch; gap:8px; margin-bottom:10px; }
+  .turn-options .turn-boost-checkbox { flex:1; min-width:0; width:auto; margin-bottom:0; }
+  .godhand-btn { flex:0 0 auto; background: linear-gradient(135deg, var(--teal), var(--purple)); color: var(--on-accent); border:none; border-radius:12px; padding:8px 12px; font-weight:700; font-size:13px; line-height:1.2; min-height:44px; cursor:pointer; box-shadow: 0 0 14px rgba(var(--teal-rgb),0.4); }
+  .godhand-btn:disabled { background: var(--panel-soft); color: var(--chalk-dim); box-shadow:none; opacity:0.55; cursor:default; }
+  .godhand-hint { font-size:11.5px; line-height:1.4; color: var(--chalk-dim); margin:-4px 0 10px; }
+  .godhand-hint.ready { color: var(--teal); }
+  .godhand-badge { margin-top:4px; font-size:9.5px; font-weight:700; color: var(--teal); line-height:1.2; }
+  .godhand-badge.used { color: var(--chalk-dim); opacity:0.55; text-decoration: line-through; }
+  .boost-tag.godhand { color: var(--teal); border-color: var(--teal); background: rgba(var(--teal-rgb),0.12); }
+  .godhand-modal { text-align:center; }
+  .godhand-modal-emoji { font-size:42px; line-height:1; margin-bottom:4px; }
+  .godhand-modal-title { font-family:'Righteous'; font-weight:400; font-size:24px; color: var(--teal); margin:0 0 8px; }
+  .godhand-modal-text { font-size:13.5px; line-height:1.55; margin:0 0 14px; }
+  .godhand-modal-text b { color: var(--gold-soft); }
+  .godhand-actions { display:flex; flex-direction:column; gap:8px; }
+  .godhand-actions .primary-btn { width:100%; }
+  .godhand-fail { width:100%; min-height:46px; border-radius:14px; background: transparent; color:#ff6b81; border:1px solid #ff4d6d; font-weight:700; font-size:15px; cursor:pointer; }
   .boost-badge { margin-top:6px; font-size:9.5px; color:#e07a5f; font-weight:700; line-height:1.2; }
   .boost-chip.active { background: #e07a5f; border-color:#e07a5f; color:#1d130f; }
   .boost-tag { margin-left:8px; font-size:11px; color:#e07a5f; font-weight:700; }
@@ -622,7 +639,7 @@ const FACE_ROWS = [
   { face: 2, tiers: { 3: 200, 4: 400, 5: 800 } },
   { face: 3, tiers: { 3: 300, 4: 600, 5: 1200 } },
   { face: 4, tiers: { 3: 400, 4: 800, 5: 1600 } },
-  { face: 5, tiers: { 1: 50, 2: 100, 3: 500, 4: 1000, 5: 1500 } },
+  { face: 5, tiers: { 1: 50, 2: 100, 3: 500, 4: 1000, 5: 2000 } },
   { face: 6, tiers: { 3: 600, 4: 1200, 5: 2400 } },
 ];
 const SUITES = [
@@ -1038,6 +1055,18 @@ function RulesScreen({ onBack }) {
             Quelle que soit la combinaison (joueur Grosse bite, tour annoncé, surprise ou manche générale), un score n’est <b>jamais multiplié par plus de 2</b>.
             Annoncer sa Grosse bite alors qu’une Grosse Bite surprise était déjà en jeu ne change donc rien : c’est ×2, pas ×4.
           </RuleCard>
+
+          <h2 className="rules-h">Le Plan à 4 (option)</h2>
+          <p className="rules-p">
+            Activable dans les paramètres de la partie. Chaque joueur dispose d’<b>un seul joker par partie</b>.
+          </p>
+          <ul className="rules-list">
+            <li>Une fois un <b>brelan</b> posé et s’il reste au moins un dé libre, on annonce « Plan à 4 » <b>avant</b> de relancer les dés libres.</li>
+            <li>Il faut obtenir <b>au moins un dé de la même face</b> : <b>un seul</b> dé rejoint le brelan, qui devient un carré.</li>
+            <li>Réussi : les autres dés comptent normalement (les 1 et les 5) et le tour continue.</li>
+            <li>Raté : <b>le tour est perdu</b>, même si un 1 ou un 5 est sorti.</li>
+            <li>Seulement à partir d’un brelan : ni carré, ni quintuple, ni suites. Pas non plus pendant une Giclette, un Duel ou un départage.</li>
+          </ul>
 
           <h2 className="rules-h">Le Mode Partouze</h2>
           <p className="rules-p">
@@ -1565,7 +1594,7 @@ function ComboTable({ pool, onAdd, diceCount }) {
                 key={c}
                 className={"ct-cell ct-btn" + (disabled ? " ct-disabled" : "")}
                 disabled={disabled}
-                onClick={() => onAdd({ label, points, cost: c })}
+                onClick={() => onAdd({ label, points, cost: c, face: row.face, count: c })}
               >
                 {points}
               </button>
@@ -1747,6 +1776,12 @@ function App() {
   const [editDuelP1, setEditDuelP1] = useState("");
   const [editDuelP2, setEditDuelP2] = useState("");
   const [turnBoost, setTurnBoost] = useState(false);
+  // "Plan à 4" (one joker per player per game, optional). Internal names keep the old "godHand" prefix
+  // so that games already saved on a device still load.
+  const [godHandEnabled, setGodHandEnabled] = useState(false);
+  const [godHandUsedIds, setGodHandUsedIds] = useState([]);
+  const [godHandTurn, setGodHandTurn] = useState(false);
+  const [godHandStep, setGodHandStep] = useState(null);
   const [surpriseBoost, setSurpriseBoost] = useState(false);
   const [revealSurprise, setRevealSurprise] = useState(false);
   const [buttonShake, setButtonShake] = useState(false);
@@ -2038,6 +2073,9 @@ function App() {
     setSurpriseBoost(false);
     setGicletteActive(false);
     setPetiteBite(false);
+    setGodHandUsedIds([]);
+    setGodHandTurn(false);
+    setGodHandStep(null);
     setPopupQueue([]);
     setEditingIndex(null);
     setDuelStep(null);
@@ -2061,12 +2099,81 @@ function App() {
     setRevealSurprise(false);
     setButtonShake(false);
     setPetiteBite(false);
+    setGodHandTurn(false);
+    setGodHandStep(null);
+  }
+
+  // The "Réinitialiser" button: wiping the turn also gives back a Plan à 4 used during it.
+  function resetTurnByHand() {
+    if (godHandTurn && activePlayer) {
+      setGodHandUsedIds((ids) => ids.filter((id) => id !== activePlayer.id));
+    }
+    resetTurnState();
   }
 
   function addCombo(item) {
     setTurnScore((s) => s + item.points);
     setPool((p) => p - item.cost);
-    setTurnAdds((a) => [...a, { label: item.label, points: item.points, cost: item.cost }]);
+    setTurnAdds((a) => [
+      ...a,
+      { label: item.label, points: item.points, cost: item.cost, face: item.face, count: item.count },
+    ]);
+  }
+
+  // ---- Plan à 4 -------------------------------------------------------------
+  // Announced once a triple has been set aside from the combo table, while at least one die is still
+  // free. One extra die of the same face then joins it: the triple becomes a four-of-a-kind.
+  // Triples only: never a four- or five-of-a-kind, never a straight, never a manual entry.
+  function godHandTarget() {
+    if (!godHandEnabled || isTiebreak || !activePlayer || gicletteActive || reopenHold) return null;
+    if (godHandUsedIds.includes(activePlayer.id) || diceCount < 5 || pool < 1) return null;
+    const rows = getComboRows(diceCount);
+    let best = null;
+    turnAdds.forEach((c) => {
+      if (!c.face || c.godHand || c.count !== 3) return;
+      const row = rows.find((r) => r.face === c.face);
+      const nextPoints = row && row.tiers[c.count + 1];
+      if (!nextPoints) return;
+      if (!best || c.count > best.count) {
+        best = { ...c, nextPoints, nextCount: c.count + 1, delta: nextPoints - c.points };
+      }
+    });
+    return best;
+  }
+
+  function godHandSuccess() {
+    const t = godHandTarget();
+    setGodHandStep(null);
+    if (!t || !activePlayer) return;
+    const nextLabel = `${TIER_NAMES[t.nextCount]} ${t.face}`;
+    setTurnScore((s) => s + t.delta);
+    setPool((p) => p - 1);
+    setTurnAdds((a) => [
+      ...a,
+      { label: `4️⃣ Plan à 4 → ${nextLabel}`, points: t.delta, cost: 1, face: t.face, count: t.nextCount, godHand: true },
+    ]);
+    setGodHandUsedIds((ids) => [...ids, activePlayer.id]);
+    setGodHandTurn(true);
+    showPopup(
+      "gold",
+      "4️⃣",
+      "PLAN À 4 !",
+      `${activePlayer.name} complète son ${t.label} : ${nextLabel} ! (+${t.delta} pts). Les autres dés comptent normalement et il peut continuer son tour.`
+    );
+  }
+
+  function godHandFail() {
+    const t = godHandTarget();
+    setGodHandStep(null);
+    if (!activePlayer) return;
+    setGodHandUsedIds((ids) => [...ids, activePlayer.id]);
+    showPopup(
+      "red",
+      "💀",
+      "PLAN À 4 RATÉ !",
+      `${activePlayer.name} n’a pas eu son ${t ? t.face : "dé"} : le tour est perdu, même avec un 1 ou un 5.`
+    );
+    bankTurn(true, { godHand: "fail" });
   }
 
   function addManual() {
@@ -2087,6 +2194,11 @@ function App() {
       const removed = copy.pop();
       setTurnScore((s) => s - removed.points);
       setPool((p) => p + removed.cost);
+      if (removed.godHand && activePlayer) {
+        // taking the joker's die back also gives the joker back
+        setGodHandUsedIds((ids) => ids.filter((id) => id !== activePlayer.id));
+        setGodHandTurn(false);
+      }
       return copy;
     });
   }
@@ -2107,7 +2219,7 @@ function App() {
     }
   }
 
-  function bankTurn(bust) {
+  function bankTurn(bust, meta = {}) {
     if (!currentPlayer) return;
     const base = bust ? 0 : turnScore;
     // Any form of Grosse Bite (permanent, the in-game checkbox, the individual
@@ -2138,6 +2250,7 @@ function App() {
         giclette: gicletteActive,
         gicletteGeneral: gicletteActive && gicletteGeneralRound,
         petiteBite: halved,
+        godHand: meta.godHand || (godHandTurn ? "success" : null),
         combos: bust ? [] : turnAdds.map((a) => ({ label: a.label, points: a.points, cost: a.cost })),
       },
     ]);
@@ -3256,14 +3369,14 @@ function App() {
           partoozeIndividual, partoozeGeneral, gicletteIndividual, gicletteGeneral, petiteBiteEnabled,
           duelEnabled, gangbangEnabled, tournanteEnabled, anulingusEnabled,
         },
-        customChanceEnabled, customRoundChance, customTurnChance,
+        customChanceEnabled, customRoundChance, customTurnChance, godHandEnabled,
       },
       players, turnCount, history, triggered, turnsLeftAfterTrigger, triggerInfo, roundSnapshots, winner,
       roundEndStage,
       ev: {
         generalBoostRound, gicletteGeneralRound, gangbangRoundIndex, gangbangResolved, gangbangResult,
         tournanteRoundIndex, tournanteResolved, anulingusRoundIndex, anulingusResolved,
-        anulingusChooserId, anulingusRoundNumber, surpriseBoost, gicletteActive, petiteBite,
+        anulingusChooserId, anulingusRoundNumber, surpriseBoost, gicletteActive, petiteBite, godHandUsedIds,
       },
       duel: phase === "duel" ? { challengerId: duelChallengerId } : null,
       decided: { turn: decidedTurn, round: decidedRound },
@@ -3321,6 +3434,7 @@ function App() {
     setCustomChanceEnabled(s.customChanceEnabled);
     setCustomRoundChance(s.customRoundChance);
     setCustomTurnChance(s.customTurnChance);
+    setGodHandEnabled(!!s.godHandEnabled);
 
     setPlayers(snap.players);
     setTurnCount(snap.turnCount);
@@ -3346,6 +3460,9 @@ function App() {
     setSurpriseBoost(ev.surpriseBoost);
     setGicletteActive(ev.gicletteActive);
     setPetiteBite(ev.petiteBite);
+    setGodHandUsedIds(ev.godHandUsedIds || []);
+    setGodHandTurn(false);
+    setGodHandStep(null);
 
     lastDecidedTurnRef.current = snap.decided.turn;
     lastDecidedRoundRef.current = snap.decided.round;
@@ -3765,6 +3882,15 @@ function App() {
                     ))}
                   </div>
                 </div>
+                <div className="field">
+                  <label className="checkbox-field">
+                    <input type="checkbox" checked={godHandEnabled} onChange={() => setGodHandEnabled((m) => !m)} />
+                    4️⃣ Plan à 4 (un joker par joueur)
+                  </label>
+                  <p className="order-hint">
+                    Après un brelan posé, annonce le Plan à 4 et relance tes dés libres : un dé de la même face rejoint ton brelan pour en faire un carré. Aucun dé voulu : le tour est perdu.
+                  </p>
+                </div>
               </>
             )}
 
@@ -4176,6 +4302,11 @@ function App() {
                 <div className="player-score">{isTiebreak ? tbScores[p.id] ?? "—" : p.total}</div>
                 {!isTiebreak && <DiceTrail total={p.total} target={target} />}
                 {!isTiebreak && p.boost && <div className="boost-badge">🍆 grosse bite — x2</div>}
+                {!isTiebreak && godHandEnabled && (
+                  <div className={"godhand-badge" + (godHandUsedIds.includes(p.id) ? " used" : "")}>
+                    4️⃣ {godHandUsedIds.includes(p.id) ? "utilisé" : "joker"}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -4231,16 +4362,39 @@ function App() {
             );
           })()}
 
-          {!isTiebreak && (
-            <label className={"turn-boost-checkbox" + (turnBoost ? " active" : "")}>
-              <input
-                type="checkbox"
-                checked={turnBoost}
-                onChange={(e) => setTurnBoost(e.target.checked)}
-              />
-              🍆 Tour grosse bite (x2 sur ce tour)
-            </label>
-          )}
+          {(() => {
+            const showPlan =
+              godHandEnabled && !isTiebreak && activePlayer && !gicletteActive && !godHandUsedIds.includes(activePlayer.id);
+            const gh = showPlan ? godHandTarget() : null;
+            return (
+              <>
+                <div className="turn-options">
+                  {!isTiebreak && (
+                    <label className={"turn-boost-checkbox" + (turnBoost ? " active" : "")}>
+                      <input
+                        type="checkbox"
+                        checked={turnBoost}
+                        onChange={(e) => setTurnBoost(e.target.checked)}
+                      />
+                      🍆 Tour grosse bite (x2 sur ce tour)
+                    </label>
+                  )}
+                  {showPlan && (
+                    <button className="godhand-btn" disabled={!gh} onClick={() => setGodHandStep("announce")}>
+                      4️⃣ Plan à 4
+                    </button>
+                  )}
+                </div>
+                {showPlan && (
+                  <div className={"godhand-hint" + (gh ? " ready" : "")}>
+                    {gh
+                      ? `${gh.label} → ${TIER_NAMES[gh.nextCount]} ${gh.face} (+${gh.delta} pts) si un ${gh.face} sort. Sinon, tour perdu.`
+                      : "Plan à 4 : il faut un brelan posé et au moins 1 dé libre."}
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           <ComboTable pool={pool} onAdd={addCombo} diceCount={diceCount} />
           <TurnBreakdown adds={turnAdds} />
@@ -4267,7 +4421,7 @@ function App() {
 
           <div className="turn-actions-secondary">
             <button className="mini-btn ghost" onClick={undoLastAdd}>↩ Annuler</button>
-            <button className="mini-btn ghost" onClick={resetTurnState}>Réinitialiser</button>
+            <button className="mini-btn ghost" onClick={resetTurnByHand}>Réinitialiser</button>
           </div>
 
           {!isTiebreak && diceCount >= 5 && !confirmInstantWin && (
@@ -4309,6 +4463,11 @@ function App() {
                       <span className="boost-tag partouze">🎊 grosse bite surprise générale x2</span>
                     ) : (
                       h.partoozeBoosted && <span className="boost-tag partouze">🎉 grosse bite surprise x2</span>
+                    )}
+                    {h.godHand === "fail" ? (
+                      <span className="boost-tag godhand">4️⃣ plan à 4 raté</span>
+                    ) : (
+                      h.godHand && <span className="boost-tag godhand">4️⃣ plan à 4</span>
                     )}
                     {h.gicletteGeneral ? (
                       <span className="boost-tag giclette">⛓️ giclette générale</span>
@@ -4370,6 +4529,28 @@ function App() {
         </>
         )}
       </div>
+      {godHandStep === "announce" && (() => {
+        const gh = godHandTarget();
+        if (!gh) return null;
+        return (
+          <div className="edit-modal-overlay">
+            <div className="share-modal godhand-modal">
+              <div className="godhand-modal-emoji">4️⃣</div>
+              <h3 className="godhand-modal-title">Plan à 4</h3>
+              <p className="godhand-modal-text">
+                {activePlayer.name} tente le Plan à 4 sur son <b>{gh.label}</b>. Lance tes <b>{pool} dé{pool > 1 ? "s" : ""} libre{pool > 1 ? "s" : ""}</b> :
+                il faut <b>au moins un {gh.face}</b> pour passer à {TIER_NAMES[gh.nextCount]} {gh.face} (+{gh.delta} pts).
+                Sinon, <b>le tour est perdu</b>, même avec un 1 ou un 5.
+              </p>
+              <div className="godhand-actions">
+                <button className="primary-btn" onClick={godHandSuccess}>🎯 Un {gh.face} est sorti</button>
+                <button className="godhand-fail" onClick={godHandFail}>💀 Aucun {gh.face}</button>
+                <button className="ghost-btn" onClick={() => setGodHandStep(null)}>Annuler</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       <EventPopup popup={activePopup} onDismiss={dismissPopup} />
 
       {editingIndex !== null && (() => {
