@@ -486,6 +486,8 @@
   .ct-btn.ct-disabled { opacity:0.3; color: var(--chalk-dim); }
   .ct-suites { display:flex; gap:6px; margin-top:6px; }
   .suite-chip { flex:1; }
+  .ct-suites.grid2 { display:grid; grid-template-columns: 1fr 1fr; }
+  .rules-suites.grid2 { grid-template-columns: repeat(2, 1fr); }
 
   .chip { background: var(--panel-soft); border:1px solid var(--line); color: var(--chalk); border-radius:10px; padding:7px 8px; font-size:11.5px; display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-height:46px; justify-content:center; }
   .chip-top { display:flex; align-items:center; gap:4px; }
@@ -633,7 +635,17 @@ const { useState, useEffect, useRef } = React;
 
 const DICE_UNICODE = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
 
-const TIER_NAMES = { 1: "Un", 2: "Deux", 3: "Trois", 4: "Quatre", 5: "Cinq" };
+// Combination names shown to players: "Un 1", "Double 2", "Triple 5", "Quadruple 3", "Quintuple 5".
+const TIER_NAMES = { 1: "Un", 2: "Double", 3: "Triple", 4: "Quadruple", 5: "Quintuple" };
+// Games saved before this rename still hold the old names ("Deux 2", "Trois 5"…): stored labels are shown
+// through comboLabel() so that history, corrections and old saved games all use the new names.
+const OLD_TIER_NAMES = { Deux: 2, Trois: 3, Quatre: 4, Cinq: 5 };
+function comboLabel(label) {
+  return String(label || "").replace(
+    /\b(Deux|Trois|Quatre|Cinq) (\d)\b/g,
+    (m, word, face) => `${TIER_NAMES[OLD_TIER_NAMES[word]]} ${face}`
+  );
+}
 const FACE_ROWS = [
   { face: 1, tiers: { 1: 100, 2: 200, 3: 300, 4: 600, 5: 1200 } },
   { face: 2, tiers: { 3: 200, 4: 400, 5: 800 } },
@@ -692,9 +704,13 @@ function getComboRows(diceCount) {
   }).filter((row) => Object.keys(row.tiers).length > 0);
 }
 
+// "3 doubles": three pairs of three different faces, using all six dice of a roll.
+const THREE_PAIRS_POINTS = 1000;
+
 function getExtraCombos(diceCount) {
   const combos = [];
   if (diceCount === 4) combos.push({ label: "Deux paires", points: 250, cost: 4 });
+  if (diceCount === 6) combos.push({ label: "3 doubles", points: THREE_PAIRS_POINTS, cost: 6 });
   if (SHORT_STRAIGHTS[diceCount]) combos.push(...SHORT_STRAIGHTS[diceCount]);
   return combos;
 }
@@ -1022,23 +1038,27 @@ function RulesScreen({ onBack }) {
               </tbody>
             </table>
           </div>
-          <div className="rules-suites">
-            {SUITES.map((s) => (
+          <div className="rules-suites grid2">
+            {[...SUITES, ...getExtraCombos(6)].map((s) => (
               <div key={s.label} className="rules-suite">
                 <div className="rules-suite-label">{s.label}</div>
-                <div className="rules-suite-pts">{s.points}</div>
+                <div className="rules-suite-pts">{String(s.points).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0")}</div>
                 <div className="rules-suite-cost">avec {s.cost} dés</div>
               </div>
             ))}
           </div>
+          <RuleCard title="3 doubles">
+            Trois paires de <b>trois faces différentes</b> avec tes <b>6 dés</b> (par exemple 2-2, 4-4, 6-6) : <b>1 000 points</b>.
+            Il faut les 6 dés du lancer, donc le tour s’arrête là. Un carré plus une paire ne compte pas (le carré rapporte déjà davantage).
+          </RuleCard>
           <RuleCard title="Partie à 5 dés">
-            Mêmes valeurs, mais sans la colonne « 5 dés » et sans la grande suite 1-2-3-4-5-6.
+            Mêmes valeurs, mais sans la colonne « 5 dés », sans la grande suite 1-2-3-4-5-6 et sans les 3 doubles.
           </RuleCard>
           <RuleCard title="Victoire immédiate">
             Tous tes dés identiques sur <b>un seul lancer</b> (six à 6 dés, cinq à 5 dés) : tu <b>gagnes la partie sur-le-champ</b>. Un bouton de l’app l’enregistre.
           </RuleCard>
           <RuleCard title="Exemple de tour (6 dés)">
-            1er lancer : trois 5 (500) + un 1 (100) = <b>600</b>, il reste 2 dés. 2e lancer : un 5 = 50, soit <b>650</b>, il reste 1 dé.
+            1er lancer : un triple 5 (500) + un 1 (100) = <b>600</b>, il reste 2 dés. 2e lancer : un 5 = 50, soit <b>650</b>, il reste 1 dé.
             Dernier dé : rien ? <b>Perdu</b>… ou tu t’arrêtais à 650.
           </RuleCard>
 
@@ -1603,7 +1623,7 @@ function ComboTable({ pool, onAdd, diceCount }) {
         </div>
       ))}
       {suites.length > 0 && (
-        <div className="ct-suites">
+        <div className={"ct-suites" + (suites.length > 3 ? " grid2" : "")}>
           {suites.map((s) => {
             const disabled = s.cost > pool;
             return (
@@ -1636,7 +1656,7 @@ function TurnBreakdown({ adds }) {
     <div className="turn-breakdown">
       {adds.map((a, i) => (
         <span key={i} className="combo-tag">
-          {a.label} <b>+{a.points}</b>
+          {comboLabel(a.label)} <b>+{a.points}</b>
         </span>
       ))}
     </div>
@@ -4487,7 +4507,7 @@ function App() {
                     <div className="history-combos">
                       {h.combos.map((c, ci) => (
                         <span key={ci} className="combo-tag small">
-                          {c.label} <b>+{c.points}</b>
+                          {comboLabel(c.label)} <b>+{c.points}</b>
                         </span>
                       ))}
                     </div>
@@ -4659,7 +4679,7 @@ function App() {
                           <div className="edit-combos-list">
                             {editCombos.map((c, ci) => (
                               <span key={ci} className="combo-tag small removable">
-                                {c.label} <b>+{c.points}</b>
+                                {comboLabel(c.label)} <b>+{c.points}</b>
                                 <button className="combo-remove" onClick={() => removeEditCombo(ci)}>✕</button>
                               </span>
                             ))}
