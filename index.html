@@ -915,6 +915,52 @@ function fmtGameDate(ts) {
   }
 }
 
+// ------------------------------------------------------------------ The Real Rico (money mode)
+// A "Grande Partie" chains several classic games on which players bet real money. Only the
+// bankroll/stakes live here; every sub-game is a normal game played through the usual flow.
+const GRANDE_KEY = "rico-grande-v1";
+function emptyGrande() {
+  return { active: false, buyIn: 5, bankroll: [], rounds: [], pending: null };
+}
+function loadGrande() {
+  try {
+    const g = JSON.parse(localStorage.getItem(GRANDE_KEY));
+    if (g && typeof g === "object" && g.active) return { ...emptyGrande(), ...g };
+  } catch (e) {}
+  return emptyGrande();
+}
+function saveGrande(g) {
+  try {
+    if (g && g.active) localStorage.setItem(GRANDE_KEY, JSON.stringify(g));
+    else localStorage.removeItem(GRANDE_KEY);
+  } catch (e) {}
+}
+function fmtEuro(n) {
+  const v = Math.round((n + Number.EPSILON) * 100) / 100;
+  return `${v.toFixed(2).replace(".", ",")} €`;
+}
+// Minimum-transfer settlement: match the biggest debtor with the biggest creditor, repeat.
+function computeSettlement(bankroll, buyIn) {
+  const nets = bankroll.map((b) => ({
+    name: b.name,
+    net: Math.round((b.balance - buyIn) * 100) / 100,
+  }));
+  const creditors = nets.filter((n) => n.net > 0.004).map((n) => ({ ...n })).sort((a, b) => b.net - a.net);
+  const debtors = nets.filter((n) => n.net < -0.004).map((n) => ({ ...n, net: -n.net })).sort((a, b) => b.net - a.net);
+  const transfers = [];
+  let i = 0;
+  let j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const amt = Math.min(debtors[i].net, creditors[j].net);
+    if (amt > 0.004) transfers.push({ from: debtors[i].name, to: creditors[j].name, amount: Math.round(amt * 100) / 100 });
+    debtors[i].net -= amt;
+    creditors[j].net -= amt;
+    if (debtors[i].net <= 0.004) i += 1;
+    if (creditors[j].net <= 0.004) j += 1;
+  }
+  return { nets, transfers };
+}
+
 // Grosse Bite multipliers never stack: whatever mix of permanent Grosse bite, announced "Tour grosse bite",
 // individual surprise or general round applies, a score is doubled once (x2 maximum).
 const MAX_MULTIPLIER = 2;
@@ -1744,6 +1790,9 @@ function App() {
   const [themeColors, setThemeColors] = useState(loadTheme);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [setupStep, setSetupStep] = useState(1);
+  const [grande, setGrande] = useState(loadGrande);
+  const [grandeBuyInStr, setGrandeBuyInStr] = useState("5");
+  const [grandeStakeStr, setGrandeStakeStr] = useState("1");
   const [decidedTurn, setDecidedTurn] = useState(-1);
   const [decidedRound, setDecidedRound] = useState(-1);
   const [reopenHold, setReopenHold] = useState(null);
@@ -1980,6 +2029,10 @@ function App() {
     applyTheme(themeColors);
   }, [themeColors]);
 
+  useEffect(() => {
+    saveGrande(grande);
+  }, [grande]);
+
   function setThemeColor(key, value) {
     setThemeColors((prev) => ({ ...prev, [key]: value }));
   }
@@ -2035,8 +2088,8 @@ function App() {
     setCustomTurnChance((v) => Math.min(75, Math.max(0, v + delta)));
   }
 
-  function startGame() {
-    const trimmed = names.map((s) => s.trim());
+  function startGame(customNames) {
+    const trimmed = (customNames || names).map((s) => s.trim());
     if (trimmed.some((s) => s.length === 0)) {
       setSetupError("Donne un nom à chaque joueur.");
       return;
@@ -2046,7 +2099,15 @@ function App() {
       return;
     }
     setSetupError("");
-    const ps = trimmed.map((nm, i) => ({ id: i, name: nm, total: 0, boost: boostedIndices.includes(i) }));
+    if (customNames) {
+      // The sub-game roster can shrink from one Grande Partie round to the next
+      // (players with no money left don't play anymore): resync the setup state.
+      setNames(customNames);
+      setPlayerCount(customNames.length);
+      setStartIndex(0);
+      setBoostedIndices([]);
+    }
+    const ps = trimmed.map((nm, i) => ({ id: i, name: nm, total: 0, boost: boostedIndices.includes(i) && !customNames }));
     setPlayers(ps);
     setTurnCount(0);
     resetTurnState();
@@ -3548,6 +3609,73 @@ function App() {
     }
   }
 
+  // ---------------------------------------------------------------- The Real Rico (money mode)
+  // Called from the setup wizard once names + target + buy-in are set: opens the bankroll and
+  // sends the player to the stake screen instead of straight into a game.
+  function confirmGrandeSetup() {
+    const trimmed = names.map((s) => s.trim());
+    if (trimmed.some((s) => s.length === 0)) {
+      setSetupError("Donne un nom à chaque joueur.");
+      return;
+    }
+    if (!target || target <= 0) {
+      setSetupError("Le score à atteindre doit être supérieur à 0.");
+      return;
+    }
+    const buyIn = parseFloat(grandeBuyInStr.replace(",", ".")) || 0;
+    if (buyIn <= 0) {
+      setSetupError("La mise de départ doit être supérieure à 0.");
+      return;
+    }
+    setSetupError("");
+    setGrande({
+      active: true,
+      buyIn,
+      bankroll: trimmed.map((name) => ({ name, balance: buyIn })),
+      rounds: [],
+      pending: null,
+    });
+    setGrandeStakeStr("1");
+    setPhase("grandeStake");
+  }
+
+  // Launches one sub-game of the Grande Partie: only players still in the money play, and the
+  // stake they each put in this round is recorded so the end of the game can settle the pot.
+  function startGrandeSubGame() {
+    const stakeVal = parseFloat(grandeStakeStr.replace(",", ".")) || 0;
+    if (stakeVal <= 0) {
+      setSetupError("La mise doit être supérieure à 0.");
+      return;
+    }
+    const solvent = grande.bankroll.filter((b) => b.balance > 0);
+    if (solvent.length < 2) {
+      setPhase("grandeSettlement");
+      return;
+    }
+    setSetupError("");
+    setGrande((g) => ({ ...g, pending: { stake: stakeVal, participants: solvent.map((b) => b.name) } }));
+    startGame(solvent.map((b) => b.name));
+  }
+
+  // Settle the pot as soon as a Grande Partie sub-game ends: the winner(s) split what every
+  // participant staked. `grande.pending` is cleared in the same update, so this can't double-fire.
+  useEffect(() => {
+    if (phase !== "finished" || !grande.active || !grande.pending) return;
+    const { stake, participants } = grande.pending;
+    const R = buildResults();
+    const potTotal = Math.round(stake * participants.length * 100) / 100;
+    const winnerNames = R.winnerNames.filter((nm) => participants.includes(nm));
+    const share = winnerNames.length ? potTotal / winnerNames.length : 0;
+    const bankroll = grande.bankroll.map((b) => {
+      if (!participants.includes(b.name)) return b;
+      let bal = b.balance - stake;
+      if (winnerNames.includes(b.name)) bal += share;
+      return { ...b, balance: Math.round(bal * 100) / 100 };
+    });
+    const round = { stake, participants, winnerNames, pot: potTotal, balancesAfter: bankroll };
+    setGrande((g) => ({ ...g, bankroll, rounds: [...g.rounds, round], pending: null }));
+  }, [phase]);
+
   function goHome() {
     setConfirmReset(false);
     setPhase("home");
@@ -3556,6 +3684,9 @@ function App() {
   function abandonGame() {
     if (currentGameIdRef.current) deleteGameRecord(currentGameIdRef.current);
     currentGameIdRef.current = null;
+    // Abandoning a Grande Partie sub-game voids its stake: no one has won it, so no
+    // settlement should happen if the next game played happens to end up "finished" too.
+    if (grande.active && grande.pending) setGrande((g) => ({ ...g, pending: null }));
     goHome();
   }
 
@@ -3572,6 +3703,13 @@ function App() {
         setSetupError("Le score à atteindre doit être supérieur à 0.");
         return;
       }
+      if (grande.active && grande.bankroll.length === 0) {
+        const buyIn = parseFloat(grandeBuyInStr.replace(",", ".")) || 0;
+        if (buyIn <= 0) {
+          setSetupError("La mise de départ doit être supérieure à 0.");
+          return;
+        }
+      }
       setSetupError("");
       setSetupStep(3);
     }
@@ -3579,6 +3717,9 @@ function App() {
 
   function wizardBack() {
     setSetupError("");
+    if (setupStep === 1 && grande.active && grande.bankroll.length === 0) {
+      setGrande(emptyGrande());
+    }
     if (setupStep === 1) setPhase("home");
     else setSetupStep(setupStep - 1);
   }
@@ -3634,6 +3775,26 @@ function App() {
                   </small>
                 </button>
               )}
+              {grande.active && !inProgress && (
+                <button
+                  className="home-btn resume"
+                  onClick={() => {
+                    if (grande.bankroll.length) {
+                      setPhase("grandeStake");
+                    } else {
+                      setGrandeBuyInStr(String(grande.buyIn || 5));
+                      setSetupStep(1);
+                      setSetupError("");
+                      setPhase("setup");
+                    }
+                  }}
+                >
+                  💰 Continuer The Real Rico
+                  {grande.bankroll.length > 0 && (
+                    <small>{grande.bankroll.map((b) => `${b.name} ${fmtEuro(b.balance)}`).join(" · ")}</small>
+                  )}
+                </button>
+              )}
               <button
                 className="home-btn primary"
                 onClick={() => {
@@ -3644,6 +3805,22 @@ function App() {
               >
                 🎲 Nouvelle partie
               </button>
+              {!grande.active && (
+                <button
+                  className="home-btn"
+                  onClick={() => {
+                    applyAmbiance(AMBIANCES[0]);
+                    setGrande({ ...emptyGrande(), active: true });
+                    setGrandeBuyInStr("5");
+                    setSetupStep(1);
+                    setSetupError("");
+                    setPhase("setup");
+                  }}
+                >
+                  💰 The Real Rico
+                  <small>Ambiance classique, mais avec de l'argent sur chaque partie.</small>
+                </button>
+              )}
               <button className="home-btn" onClick={() => setPhase("history")}>📚 Historique</button>
               <button className="home-btn" onClick={() => setPhase("rules")}>📖 Règles du jeu</button>
             </div>
@@ -3863,6 +4040,23 @@ function App() {
                   />
                 </div>
 
+                {grande.active && grande.bankroll.length === 0 && (
+                  <div className="field">
+                    <label>💰 Mise de départ par joueur (The Real Rico)</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      className="target-input"
+                      value={grandeBuyInStr}
+                      placeholder="5"
+                      onChange={(e) => setGrandeBuyInStr(e.target.value.replace(/[^0-9.,]/g, ""))}
+                    />
+                    <p className="order-hint">
+                      Chaque joueur part avec cette somme. Les mises de chaque partie (1€, 2€...) seront demandées avant de lancer chacune d'elles.
+                    </p>
+                  </div>
+                )}
+
                 <div className="field">
                   <label>Qui commence ?</label>
                   <div className="starter-row">
@@ -3904,7 +4098,24 @@ function App() {
               </>
             )}
 
-            {setupStep === 3 && (
+            {setupStep === 3 && grande.active && (
+              <div className="features-panel flat">
+                <p className="ambiance-label">Ambiance</p>
+                <div className="ambiance-block">
+                  <div className="ambiance-grid">
+                    <button className="ambiance-chip active">
+                      <span className="ambiance-icon">🎲</span>
+                      <span>Classique</span>
+                    </button>
+                  </div>
+                  <p className="ambiance-desc">
+                    🔒 Ambiance verrouillée sur Classique pour The Real Rico : aucune surprise, juste les dés, les points et l'argent.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {setupStep === 3 && !grande.active && (
               <div className="features-panel flat">
                 <div className="features-panel-head">
                   <p className="ambiance-label">Ambiance</p>
@@ -4010,8 +4221,10 @@ function App() {
             <div className="wizard-nav">
               {setupStep < 3 ? (
                 <button className="primary-btn" onClick={wizardNext}>Suivant →</button>
+              ) : grande.active && grande.bankroll.length === 0 ? (
+                <button className="primary-btn start-btn" onClick={confirmGrandeSetup}>💰 Continuer</button>
               ) : (
-                <button className="primary-btn start-btn" onClick={startGame}>🎲 Lancer la partie</button>
+                <button className="primary-btn start-btn" onClick={() => startGame()}>🎲 Lancer la partie</button>
               )}
             </div>
           </div>
@@ -4077,9 +4290,40 @@ function App() {
               ))}
             </div>
 
-            <div className="wizard-nav finish-nav">
-              <button className="primary-btn" onClick={goToSetupKeepConfig}>🔄 Nouvelle partie</button>
-            </div>
+            {grande.active ? (() => {
+              const lastRound = grande.rounds[grande.rounds.length - 1];
+              const solventCount = grande.bankroll.filter((b) => b.balance > 0).length;
+              return (
+                <>
+                  <div className="stats-title">💰 The Real Rico</div>
+                  {lastRound && (
+                    <p className="subtitle">
+                      {lastRound.winnerNames.join(" & ")} empoche{lastRound.winnerNames.length > 1 ? "nt" : ""} le pot de {fmtEuro(lastRound.pot)}.
+                    </p>
+                  )}
+                  <div className="ranking">
+                    {grande.bankroll.map((b) => (
+                      <div key={b.name} className={"rank-row" + (b.balance <= 0 ? " lose" : "")}>
+                        <span className="rank-name">{b.name}</span>
+                        <span className="rank-score">{fmtEuro(b.balance)}{b.balance <= 0 ? " · hors-jeu" : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="wizard-nav finish-nav">
+                    {solventCount >= 2 ? (
+                      <button className="primary-btn" onClick={() => setPhase("grandeStake")}>▶ Partie suivante</button>
+                    ) : (
+                      <p className="order-hint">Plus personne ne peut miser : la Grande Partie est terminée.</p>
+                    )}
+                    <button className="ghost-btn" onClick={() => setPhase("grandeSettlement")}>🏁 Terminer la Grande Partie</button>
+                  </div>
+                </>
+              );
+            })() : (
+              <div className="wizard-nav finish-nav">
+                <button className="primary-btn" onClick={goToSetupKeepConfig}>🔄 Nouvelle partie</button>
+              </div>
+            )}
 
             <div className="share-actions">
               <button className="primary-btn" onClick={shareResults}>
@@ -4088,7 +4332,7 @@ function App() {
               <div className="share-toast" role="status">{shareToast}</div>
             </div>
 
-            {canReopen && (
+            {canReopen && !grande.active && (
               <button className="ghost-btn reopen-btn" onClick={() => reopenGame(currentGameIdRef.current)}>
                 ✏️ Corriger la partie
               </button>
@@ -4096,6 +4340,113 @@ function App() {
           </div>
         </div>
 
+      </div>
+    );
+  }
+
+  if (phase === "grandeStake") {
+    const solvent = grande.bankroll.filter((b) => b.balance > 0);
+    const roundNum = grande.rounds.length + 1;
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="setup-card">
+            <div className="wizard-head">
+              <button className="ghost-btn" onClick={goHome} aria-label="Accueil">←</button>
+              <div className="wizard-title">💰 The Real Rico — Partie {roundNum}</div>
+            </div>
+
+            <div className="field">
+              <label>Cagnotte des joueurs</label>
+              <div className="ranking">
+                {grande.bankroll.map((b) => (
+                  <div key={b.name} className={"rank-row" + (b.balance <= 0 ? " lose" : "")}>
+                    <span className="rank-name">{b.name}</span>
+                    <span className="rank-score">{fmtEuro(b.balance)}{b.balance <= 0 ? " · hors-jeu" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Mise pour cette partie (par joueur)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="target-input"
+                value={grandeStakeStr}
+                placeholder="1"
+                onChange={(e) => setGrandeStakeStr(e.target.value.replace(/[^0-9.,]/g, ""))}
+              />
+            </div>
+
+            {setupError && <div className="error">{setupError}</div>}
+
+            <div className="wizard-nav">
+              <button className="primary-btn start-btn" onClick={startGrandeSubGame}>
+                🎲 Lancer la partie ({solvent.length} joueurs)
+              </button>
+            </div>
+            <button className="ghost-btn reopen-btn" onClick={() => setPhase("grandeSettlement")}>
+              🏁 Terminer la Grande Partie
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "grandeSettlement") {
+    const { nets, transfers } = computeSettlement(grande.bankroll, grande.buyIn);
+    const sortedNets = [...nets].sort((a, b) => b.net - a.net);
+    const endGrande = () => {
+      setGrande(emptyGrande());
+      goHome();
+    };
+    return (
+      <div className="app">
+        <div className="phone">
+          <div className="finished-card">
+            <div className="results-head">
+              <button className="ghost-btn results-back" onClick={endGrande}>← Accueil</button>
+            </div>
+            <div className="trophy">💰</div>
+            <h1>Règlement final</h1>
+            <p className="subtitle">
+              The Real Rico — {grande.rounds.length} partie{grande.rounds.length > 1 ? "s" : ""} jouée{grande.rounds.length > 1 ? "s" : ""}
+            </p>
+
+            <div className="stats-title">Solde final (mise de départ : {fmtEuro(grande.buyIn)})</div>
+            <div className="ranking">
+              {sortedNets.map((n) => (
+                <div key={n.name} className={"rank-row" + (n.net > 0 ? " win" : n.net < 0 ? " lose" : "")}>
+                  <span className="rank-name">{n.name}</span>
+                  <span className="rank-score">{n.net > 0 ? "+" : ""}{fmtEuro(n.net)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="stats-title">Qui doit quoi à qui</div>
+            <div className="ranking">
+              {transfers.length === 0 ? (
+                <div className="stat-row">
+                  <span className="stat-label">Tout le monde est à l'équilibre, personne ne doit rien.</span>
+                </div>
+              ) : (
+                transfers.map((t, i) => (
+                  <div className="stat-row" key={i}>
+                    <span className="stat-label">{t.from} → {t.to}</span>
+                    <span className="stat-value">{fmtEuro(t.amount)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="wizard-nav finish-nav">
+              <button className="primary-btn" onClick={endGrande}>🏠 Retour à l'accueil</button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -4299,6 +4650,12 @@ function App() {
 
         {!isTiebreak && gangbangRoundIndex === currentRoundIndex && (
           <div className="round-event-chip purple">💀 GangBang</div>
+        )}
+
+        {grande.active && grande.pending && (
+          <div className="round-event-chip gold">
+            💰 Mise {fmtEuro(grande.pending.stake)}/joueur — pot {fmtEuro(grande.pending.stake * grande.pending.participants.length)}
+          </div>
         )}
 
         <div className="player-strip">
